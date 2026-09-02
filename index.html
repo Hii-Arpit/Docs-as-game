@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docs as Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F7F1E1;
+    --card: #FFFFFF;
+    --ink: #2B1F3D;
+    --ink-soft: #6B6280;
+    --violet: #6E4FF5;
+    --emerald: #16A97A;
+    --cargo: #EF6C2E;
+    --slate: #475569;
+    --line: rgba(43,31,61,0.12);
+    --shadow: 0 2px 0 rgba(43,31,61,0.04), 0 16px 32px -18px rgba(43,31,61,0.28);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  h1 {
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .sub {
+    color: var(--ink-soft);
+    font-size: 16px;
+    text-align: center;
+    margin-bottom: 48px;
+    max-width: 48ch;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 900px;
+  }
+  a.card {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 28px 24px;
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: inherit;
+    border: 2px solid transparent;
+    transition: transform 0.15s, border-color 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  a.card:hover { transform: translateY(-3px); }
+  a.card.violet:hover { border-color: var(--violet); }
+  a.card.emerald:hover { border-color: var(--emerald); }
+  a.card.cargo:hover { border-color: var(--cargo); }
+  .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    margin-bottom: 4px;
+  }
+  .violet .dot { background: var(--violet); }
+  .emerald .dot { background: var(--emerald); }
+  .cargo .dot { background: var(--cargo); }
+  .card-tag {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--ink-soft);
+  }
+  .violet .card-tag { color: var(--violet); }
+  .emerald .card-tag { color: var(--emerald); }
+  .cargo .card-tag { color: var(--cargo); }
+  .card-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 20px; font-weight: 700; line-height: 1.2;
+  }
+  .card-desc {
+    font-size: 14px; color: var(--ink-soft); line-height: 1.55;
+  }
+  .card-cta {
+    margin-top: 6px; font-size: 13px; font-weight: 600;
+  }
+  .violet .card-cta { color: var(--violet); }
+  .emerald .card-cta { color: var(--emerald); }
+  .cargo .card-cta { color: var(--cargo); }
+  footer {
+    margin-top: 48px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <h1>Docs as Game</h1>
+  <p class="sub">Interactive quickstarts that replace the PDF. Pick a product and play through it.</p>
+
+  <div class="grid">
+    <a class="card violet" href="agent-explorer.html">
+      <div class="dot"></div>
+      <span class="card-tag">Explorer</span>
+      <div class="card-title">Harness Agent Explorer</div>
+      <p class="card-desc">Navigate the four Agents, the shared Platform, and the strategic bets — all in one interactive map.</p>
+      <span class="card-cta">Explore →</span>
+    </a>
+
+    <a class="card cargo" href="artifact-voyage-standalone.html">
+      <div class="dot"></div>
+      <span class="card-tag">8 Missions · ~6 min</span>
+      <div class="card-title">Artifact Voyage</div>
+      <p class="card-desc">An Artifact Registry quickstart rebuilt as a voyage — create, push, pull, proxy, scan, and clean up artifacts.</p>
+      <span class="card-cta">Set sail →</span>
+    </a>
+
+    <a class="card emerald" href="cost-score-standalone.html">
+      <div class="dot"></div>
+      <span class="card-tag">8 Missions · ~7 min</span>
+      <div class="card-title">Cost Score</div>
+      <p class="card-desc">A Cloud Cost Management quickstart across Inform, Optimize, and Operate — unlock real savings as you go.</p>
+      <span class="card-cta">Start scoring →</span>
+    </a>
+  </div>
+
+  <footer>Built from <a href="https://developer.harness.io" style="color:inherit;text-decoration:underline;">developer.harness.io</a> docs</footer>
+</body>
+</html>
