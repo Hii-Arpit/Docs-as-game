@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cost Score</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<style>
+  /* ---------- tokens ---------- */
+  :root{
+    --cream:#FAF7F0;
+    --cream-2:#F1EBFA;
+    --card:#FFFFFF;
+    --ink:#2B1F3D;
+    --ink-soft:#6B6280;
+    --violet:#6E4FF5;
+    --violet-deep:#5A3FD1;
+    --violet-tint:#EFEAFE;
+    --emerald:#16A97A;
+    --emerald-deep:#0C8054;
+    --emerald-tint:#E3F7EE;
+    --coral:#FF7A59;
+    --coral-deep:#E35A3B;
+    --amber:#FFC857;
+    --line:rgba(43,31,61,0.12);
+    --line-strong:rgba(43,31,61,0.22);
+    --shadow:0 2px 0 rgba(43,31,61,0.04), 0 16px 32px -18px rgba(43,31,61,0.28);
+    --shadow-lg:0 24px 48px -20px rgba(43,31,61,0.32);
+    --font-display:'Sora','Segoe UI',sans-serif;
+    --font-body:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --cream:#1B1428;
+      --cream-2:#241C34;
+      --card:#241C34;
+      --ink:#F3EFE8;
+      --ink-soft:#B3A9C7;
+      --violet:#9B82FF;
+      --violet-deep:#7C5CFC;
+      --violet-tint:#31274A;
+      --emerald:#2ED191;
+      --emerald-deep:#1BAF77;
+      --emerald-tint:#1C3A30;
+      --coral:#FF9478;
+      --coral-deep:#E97A5C;
+      --amber:#FFD873;
+      --line:rgba(243,239,232,0.12);
+      --line-strong:rgba(243,239,232,0.24);
+      --shadow:0 2px 0 rgba(0,0,0,0.2), 0 16px 32px -18px rgba(0,0,0,0.55);
+      --shadow-lg:0 24px 48px -20px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --cream:#1B1428;
+    --cream-2:#241C34;
+    --card:#241C34;
+    --ink:#F3EFE8;
+    --ink-soft:#B3A9C7;
+    --violet:#9B82FF;
+    --violet-deep:#7C5CFC;
+    --violet-tint:#31274A;
+    --emerald:#2ED191;
+    --emerald-deep:#1BAF77;
+    --emerald-tint:#1C3A30;
+    --coral:#FF9478;
+    --coral-deep:#E97A5C;
+    --amber:#FFD873;
+    --line:rgba(243,239,232,0.12);
+    --line-strong:rgba(243,239,232,0.24);
+    --shadow:0 2px 0 rgba(0,0,0,0.2), 0 16px 32px -18px rgba(0,0,0,0.55);
+    --shadow-lg:0 24px 48px -20px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:16px;
+    line-height:1.55;
+  }
+  h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+  ::selection{background:var(--violet);color:#fff;}
+  .num{font-variant-numeric:tabular-nums;}
+
+  /* ---------- app bar ---------- */
+  .appbar{
+    position:sticky; top:0; z-index:40;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:12px 20px;
+    background:color-mix(in srgb, var(--cream) 88%, transparent);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .pill-stat{
+    display:flex; align-items:center; gap:8px;
+    background:var(--card); border-radius:999px; padding:7px 14px 7px 8px;
+    box-shadow:var(--shadow); font-size:13px; font-weight:600;
+  }
+  .pill-stat .swatch{width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none;}
+  .pill-stat .swatch svg{width:15px; height:15px;}
+  .pill-rank .swatch{background:var(--violet-tint); color:var(--violet-deep);}
+  .pill-savings .swatch{background:var(--emerald-tint); color:var(--emerald-deep);}
+  .pill-savings b{color:var(--emerald-deep); font-family:var(--font-display); font-size:15px;}
+  .pill-xp .swatch{background:var(--cream-2); color:var(--ink-soft);}
+  .appbar-spacer{flex:1;}
+  .ghost-btn{
+    border:1.5px solid var(--line-strong); background:transparent; color:var(--ink-soft);
+    font-size:12px; font-weight:600; padding:8px 14px; border-radius:999px; cursor:pointer;
+  }
+  .ghost-btn:hover{border-color:var(--coral); color:var(--coral-deep);}
+  button:focus-visible, [tabindex]:focus-visible, input:focus-visible{outline:3px solid var(--violet); outline-offset:2px;}
+
+  main{max-width:680px; margin:0 auto; padding:0 20px 100px;}
+
+  /* ---------- hero ---------- */
+  .hero{padding:48px 0 36px; text-align:center;}
+  .eyebrow{
+    display:inline-block; font-size:12px; font-weight:700; letter-spacing:0.06em;
+    text-transform:uppercase; color:var(--violet-deep); background:var(--violet-tint);
+    padding:7px 16px; border-radius:999px; margin-bottom:22px;
+  }
+  .hero h1{font-size:clamp(30px,5.4vw,46px); font-weight:800; line-height:1.08;}
+  .hero h1 em{font-style:normal; color:var(--violet-deep); position:relative; white-space:nowrap;}
+  .hero h1 em::after{content:"";position:absolute; left:-2%; right:-2%; bottom:0.06em; height:0.32em; background:var(--amber); z-index:-1; border-radius:3px;}
+  .hero-sub{max-width:56ch; margin:20px auto 0; font-size:16.5px; color:var(--ink-soft);}
+
+  .compare{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:34px 0 8px; text-align:left;}
+  .compare-card{background:var(--card); border-radius:20px; padding:20px; box-shadow:var(--shadow);}
+  .compare-card.old{opacity:0.75;}
+  .compare-tag{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft);}
+  .compare-title{font-family:var(--font-display); font-weight:700; font-size:18px; margin-top:6px;}
+  .pdf-lines{display:flex; flex-direction:column; gap:5px; margin:12px 0;}
+  .pdf-lines span{display:block; height:6px; border-radius:3px; background:var(--line-strong);}
+  .compare-stat{font-family:var(--font-display); font-size:26px; font-weight:800;}
+  .compare-stat small{display:block; font-family:var(--font-body); font-size:10.5px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em; margin-top:2px;}
+  .compare-card.new .compare-stat{color:var(--emerald-deep);}
+  .compare-card.old .compare-stat{color:var(--coral-deep);}
+  .compare-card.new{border:2px solid var(--violet-tint);}
+
+  .start-btn{
+    margin-top:26px; font-family:var(--font-display); font-weight:700; font-size:16px;
+    background:var(--violet); color:#fff; border:none; border-radius:999px;
+    padding:15px 32px; cursor:pointer; box-shadow:var(--shadow-lg);
+    display:inline-flex; align-items:center; gap:10px;
+  }
+  .start-btn:hover{background:var(--violet-deep); transform:translateY(-1px);}
+  .start-btn svg{width:18px; height:18px;}
+
+  /* ---------- phase tabs ---------- */
+  .phase-tabs{display:flex; gap:8px; justify-content:center; margin-top:40px; flex-wrap:wrap;}
+  .phase-tab{
+    font-family:var(--font-display); font-weight:700; font-size:13px; padding:9px 18px;
+    border-radius:999px; border:none; cursor:pointer; background:var(--cream-2); color:var(--ink-soft);
+    transition:background .2s, color .2s;
+  }
+  .phase-tab.active.inform{background:var(--violet); color:#fff;}
+  .phase-tab.active.optimize{background:var(--emerald); color:#fff;}
+  .phase-tab.active.operate{background:var(--coral); color:#fff;}
+
+  /* ---------- carousel ---------- */
+  .carousel-wrap{display:flex; align-items:center; gap:8px; margin-top:18px;}
+  .arrow-btn{
+    flex:none; width:44px; height:44px; border-radius:50%; border:none; background:var(--card);
+    box-shadow:var(--shadow); cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--ink);
+  }
+  .arrow-btn:hover{background:var(--violet-tint); color:var(--violet-deep);}
+  .arrow-btn svg{width:18px; height:18px;}
+  .arrow-btn:disabled{opacity:0.3; cursor:default;}
+  .track{
+    flex:1; display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scroll-behavior:smooth;
+    gap:0; -ms-overflow-style:none; scrollbar-width:none; border-radius:24px;
+  }
+  .track::-webkit-scrollbar{display:none;}
+  .card{
+    scroll-snap-align:center; flex:0 0 100%; padding:0 2px;
+  }
+  .card-inner{
+    background:var(--card); border-radius:24px; padding:26px 24px; box-shadow:var(--shadow-lg);
+    display:flex; flex-direction:column; min-height:100%;
+  }
+  .card-phase-pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.05em; padding:5px 12px; border-radius:999px; align-self:flex-start;
+  }
+  .card-phase-pill.inform{background:var(--violet-tint); color:var(--violet-deep);}
+  .card-phase-pill.optimize{background:var(--emerald-tint); color:var(--emerald-deep);}
+  .card-phase-pill.operate{background:color-mix(in srgb, var(--coral) 18%, var(--card)); color:var(--coral-deep);}
+
+  .card-head{display:flex; align-items:center; gap:14px; margin-top:16px;}
+  .card-icon{
+    width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .card-icon svg{width:26px; height:26px;}
+  .card.inform .card-icon{background:var(--violet-tint); color:var(--violet-deep);}
+  .card.optimize .card-icon{background:var(--emerald-tint); color:var(--emerald-deep);}
+  .card.operate .card-icon{background:color-mix(in srgb, var(--coral) 18%, var(--card)); color:var(--coral-deep);}
+  .card-title{font-size:21px; font-weight:700;}
+  .card-num{font-size:11px; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.05em;}
+
+  .card-brief{color:var(--ink-soft); margin:16px 0 0; font-size:14.5px;}
+  .card-brief .hl{background:var(--cream-2); border-radius:5px; padding:1px 7px; font-weight:600; color:var(--ink);}
+
+  .challenge{margin-top:18px; padding-top:16px; border-top:1.5px dashed var(--line-strong); flex:1;}
+  .challenge-label{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); margin-bottom:9px; display:block;}
+
+  .chip-row{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:14px;}
+  .chip{
+    font-family:var(--font-body); font-weight:600; font-size:13px; padding:8px 14px; border-radius:999px;
+    background:var(--cream-2); border:none; color:var(--ink); cursor:pointer; transition:background .15s, color .15s;
+  }
+  .chip:hover{background:var(--violet-tint);}
+  .chip.done{background:var(--violet); color:#fff;}
+
+  .field-row{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px;}
+  .text-input{
+    font-family:var(--font-body); font-weight:600; font-size:14px; padding:10px 14px; border-radius:14px;
+    border:1.5px solid var(--line-strong); background:var(--cream); color:var(--ink); min-width:180px;
+  }
+  .text-input.valid{border-color:var(--emerald); box-shadow:0 0 0 3px var(--emerald-tint);}
+  .hint{font-size:11.5px; color:var(--ink-soft);}
+
+  .readout{
+    margin-top:10px; font-size:13.5px; background:var(--cream-2); border-radius:14px;
+    padding:12px 14px; color:var(--ink-soft);
+  }
+  .readout b{color:var(--ink); font-weight:700;}
+
+  .action-grid{display:flex; flex-direction:column; gap:9px;}
+  .action-row{
+    display:flex; align-items:center; gap:10px; background:var(--cream-2); border-radius:16px;
+    padding:11px 13px; flex-wrap:wrap;
+  }
+  .action-name{font-weight:600; font-size:13px; min-width:180px;}
+  .action-figure{font-size:12.5px; color:var(--emerald-deep); font-weight:700; min-width:110px;}
+  .action-btn{
+    font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em;
+    padding:7px 13px; border-radius:999px; border:none; background:var(--card); cursor:pointer; box-shadow:var(--shadow);
+  }
+  .verdict-pill{font-size:11px; font-weight:700; padding:6px 12px; border-radius:999px; letter-spacing:0.03em; text-transform:uppercase;}
+  .verdict-pill.applied{background:var(--emerald); color:#fff;}
+  .verdict-pill.ignored{background:var(--card); color:var(--ink-soft);}
+  .verdict-pill.critical{background:var(--coral); color:#fff;}
+  .verdict-pill.medium{background:var(--amber); color:#3d2a05;}
+  .verdict-pill.low{background:var(--card); color:var(--ink-soft);}
+  .action-reason{flex-basis:100%; font-size:12px; color:var(--ink-soft);}
+
+  .switch-row{display:flex; align-items:center; gap:12px; margin:10px 0;}
+  .switch{
+    width:50px; height:28px; border-radius:999px; border:none; background:var(--cream-2);
+    position:relative; cursor:pointer; flex:none;
+  }
+  .switch .knob{position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:var(--shadow); transition:left .2s;}
+  .switch.on{background:var(--violet);}
+  .switch.on .knob{left:25px;}
+
+  .stage-track{display:flex; gap:6px; margin-top:12px; flex-wrap:wrap;}
+  .stage-chip{font-size:10.5px; font-weight:600; padding:5px 11px; border-radius:999px; background:var(--cream-2); color:var(--ink-soft); opacity:0.45; transition:opacity .25s, background .25s, color .25s;}
+  .stage-chip.lit{opacity:1; background:var(--violet); color:#fff;}
+
+  .report-panel{display:none; margin-top:14px; border-radius:16px; padding:16px; background:var(--emerald-tint);}
+  .report-panel.shown{display:block;}
+  .report-grid{display:flex; gap:24px; flex-wrap:wrap; margin-bottom:10px;}
+  .report-stat b{display:block; font-family:var(--font-display); font-size:22px; color:var(--emerald-deep);}
+  .report-stat span{font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft);}
+  .report-rec{font-size:13px; color:var(--ink); border-top:1.5px dashed var(--line-strong); padding-top:10px; font-weight:500;}
+
+  .card-footer{display:flex; justify-content:flex-end; margin-top:16px;}
+  .card-xp-pill{
+    font-size:12px; font-weight:700; padding:5px 13px; border-radius:999px; background:var(--cream-2); color:var(--ink-soft);
+  }
+  .card.cleared .card-xp-pill{background:var(--emerald); color:#fff;}
+
+  /* dot pagination */
+  .dots{display:flex; justify-content:center; gap:7px; margin-top:18px;}
+  .dot{width:9px; height:9px; border-radius:50%; border:none; background:var(--line-strong); cursor:pointer; padding:0;}
+  .dot.active{width:22px; border-radius:5px; background:var(--violet);}
+  .dot.cleared:not(.active){background:var(--emerald);}
+
+  .toast-region{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:60; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none;}
+  .toast{
+    font-size:13px; font-weight:600; background:var(--ink); color:var(--cream);
+    border-radius:999px; padding:10px 18px; box-shadow:var(--shadow-lg); opacity:0; transform:translateY(8px);
+    animation:toastIn .25s forwards, toastOut .25s forwards 2.1s;
+  }
+  .toast b{color:var(--amber);}
+  @keyframes toastIn{to{opacity:1; transform:translateY(0);}}
+  @keyframes toastOut{to{opacity:0; transform:translateY(-6px);}}
+
+  #confetti-canvas{position:fixed; inset:0; pointer-events:none; z-index:55; width:100vw; height:100vh;}
+
+  /* ---------- finale ---------- */
+  .finale{
+    margin-top:40px; text-align:center; background:var(--violet); color:#fff;
+    border-radius:28px; padding:42px 26px; position:relative; overflow:hidden;
+  }
+  .finale-medal{width:56px; height:56px; margin:0 auto 12px; color:var(--amber);}
+  .finale h2{font-size:clamp(22px,3.4vw,30px); font-weight:800;}
+  .finale p{color:rgba(255,255,255,0.82); max-width:48ch; margin:10px auto 0; font-size:14.5px;}
+  .finale-stats{display:flex; justify-content:center; gap:14px; margin:24px 0 6px; flex-wrap:wrap;}
+  .finale-stat{background:rgba(255,255,255,0.14); border-radius:18px; padding:12px 20px;}
+  .finale-stat b{display:block; font-family:var(--font-display); font-size:24px;}
+  .finale-stat span{font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.75);}
+  .finale-actions{display:flex; justify-content:center; gap:10px; margin-top:22px; flex-wrap:wrap;}
+  .finale-btn{
+    font-family:var(--font-display); font-weight:700; font-size:14px; padding:12px 22px; border-radius:999px;
+    border:2px solid rgba(255,255,255,0.5); background:transparent; color:#fff; cursor:pointer;
+  }
+  .finale-btn.primary{background:var(--amber); color:#3d2a05; border-color:var(--amber);}
+
+  .closing-note{
+    margin:26px 0 0; text-align:center; font-size:12px; color:var(--ink-soft);
+  }
+  .closing-note a{color:var(--violet-deep); text-decoration:underline; font-weight:600;}
+
+  @media (max-width:520px){
+    .compare{grid-template-columns:1fr;}
+    .arrow-btn{display:none;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
+  }
+</style>
+</head>
+<body>
+<svg class="visually-hidden" aria-hidden="true">
+  <defs>
+    <symbol id="ic-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <ellipse cx="12" cy="12" rx="9" ry="5"/><circle cx="12" cy="12" r="2.5"/>
+    </symbol>
+    <symbol id="ic-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4,4 H12 L20,12 L12,20 H4 Z"/><circle cx="8" cy="8" r="1.4"/>
+    </symbol>
+    <symbol id="ic-wallet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="7" width="18" height="12" rx="3"/><path d="M3,10 H21"/><circle cx="17" cy="14" r="1.3" fill="currentColor" stroke="none"/>
+    </symbol>
+    <symbol id="ic-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="4" y1="6" x2="20" y2="6"/><circle cx="14" cy="6" r="2"/>
+      <line x1="4" y1="12" x2="20" y2="12"/><circle cx="8" cy="12" r="2"/>
+      <line x1="4" y1="18" x2="20" y2="18"/><circle cx="16" cy="18" r="2"/>
+    </symbol>
+    <symbol id="ic-power" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8"/><line x1="12" y1="5" x2="12" y2="12"/>
+    </symbol>
+    <symbol id="ic-coins" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <ellipse cx="12" cy="17" rx="7" ry="3"/><ellipse cx="12" cy="12.5" rx="7" ry="3"/><ellipse cx="12" cy="8" rx="7" ry="3"/>
+    </symbol>
+    <symbol id="ic-radar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><line x1="12" y1="12" x2="17.5" y2="7.5"/><circle cx="16" cy="9" r="1.2" fill="currentColor" stroke="none"/>
+    </symbol>
+    <symbol id="ic-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="5" y="4" width="14" height="18" rx="2"/><path d="M9,4 V2 H15 V4"/><polyline points="8,13 11,16 16,10"/>
+    </symbol>
+    <symbol id="ic-medal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9,10 L6,3 L9,3 L12,9 L15,3 L18,3 L15,10"/><circle cx="12" cy="15" r="6"/>
+    </symbol>
+    <symbol id="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="4,13 9,18 20,6"/>
+    </symbol>
+    <symbol id="ic-arrow-l" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15,5 8,12 15,19"/>
+    </symbol>
+    <symbol id="ic-arrow-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9,5 16,12 9,19"/>
+    </symbol>
+    <symbol id="ic-coin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="17"/><path d="M9,9 q3,-1.6 6,0 M9,15 q3,1.6 6,0"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="appbar">
+  <div class="pill-stat pill-rank"><span class="swatch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-medal"/></svg></span><span id="rankName">Crawl</span></div>
+  <div class="pill-stat pill-savings"><span class="swatch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-coin"/></svg></span>Savings unlocked <b class="num" id="savingsValue">$0</b>/mo</div>
+  <div class="pill-stat pill-xp"><span class="swatch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-check"/></svg></span><span class="num" id="xpValue">0</span>/1400 XP</div>
+  <div class="appbar-spacer"></div>
+  <button class="ghost-btn" id="resetBtn" type="button">Reset</button>
+</header>
+
+<main>
+  <section class="hero">
+    <span class="eyebrow">A Harness Cloud Cost Management Quickstart · FinOps Edition</span>
+    <h1>Turn cloud spend into a score you can <em>actually improve.</em></h1>
+    <p class="hero-sub">Nobody opens the FinOps runbook until the bill spikes. Swipe through 8 missions across Inform, Optimize, and Operate instead &mdash; each one unlocks real savings, in real Harness CCM terms.</p>
+
+    <div class="compare">
+      <div class="compare-card old">
+        <span class="compare-tag">Old way</span>
+        <span class="compare-title">The FinOps runbook</span>
+        <div class="pdf-lines" aria-hidden="true">
+          <span style="width:88%"></span><span style="width:75%"></span><span style="width:82%"></span><span style="width:58%"></span>
+        </div>
+        <div class="compare-stat">~18 min<small>PDF, read once</small></div>
+      </div>
+      <div class="compare-card new">
+        <span class="compare-tag">New way</span>
+        <span class="compare-title">Cost Score</span>
+        <div class="pdf-lines" aria-hidden="true">
+          <span style="width:35%;background:var(--emerald);"></span>
+        </div>
+        <div class="compare-stat">~7 min<small>8 swipes, real savings</small></div>
+      </div>
+    </div>
+
+    <button class="start-btn" id="startBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-power"/></svg>
+      Start Mission 1
+    </button>
+  </section>
+
+  <div class="phase-tabs">
+    <button class="phase-tab inform active" type="button" data-jump="0">Inform</button>
+    <button class="phase-tab optimize" type="button" data-jump="3">Optimize</button>
+    <button class="phase-tab operate" type="button" data-jump="6">Operate</button>
+  </div>
+
+  <div class="carousel-wrap">
+    <button class="arrow-btn" id="prevBtn" type="button" aria-label="Previous mission"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-arrow-l"/></svg></button>
+
+    <div class="track" id="track">
+
+      <!-- CARD 1 -->
+      <div class="card inform" data-level="1" data-maxxp="150">
+        <div class="card-inner">
+          <span class="card-phase-pill inform">Inform</span>
+          <div class="card-head">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-eye"/></svg></div>
+            <div><div class="card-num">Mission 01</div><h3 class="card-title">Build a Perspective</h3></div>
+          </div>
+          <p class="card-brief">A <span class="hl">Perspective</span> is a customizable view of your cloud spend &mdash; Harness aggregates cost across AWS, GCP, Azure, and Kubernetes and lets you group it by any business dimension.</p>
+          <div class="challenge">
+            <span class="challenge-label">Pull in your data sources</span>
+            <div class="chip-row">
+              <button class="chip" type="button" data-action="sentence" data-level="1" data-key="src-aws" data-xp="20" data-slot="src" data-text="AWS">AWS</button>
+              <button class="chip" type="button" data-action="sentence" data-level="1" data-key="src-gcp" data-xp="20" data-slot="src" data-text="GCP">GCP</button>
+              <button class="chip" type="button" data-action="sentence" data-level="1" data-key="src-azure" data-xp="20" data-slot="src" data-text="Azure">Azure</button>
+              <button class="chip" type="button" data-action="sentence" data-level="1" data-key="src-k8s" data-xp="20" data-slot="src" data-text="Kubernetes">Kubernetes</button>
+            </div>
+            <span class="challenge-label">Group the spend by</span>
+            <div class="chip-row">
+              <button class="chip" type="button" data-action="sentence" data-level="1" data-key="grp-svc" data-xp="18" data-slot="grp" data-text="Service">Service</button>
+              <button class="chip" type="button" data-action="sentence" data-level="1" data-key="grp-region" data-xp="18" data-slot="grp" data-text="Region">Region</button>
+              <button class="chip" type="button" data-action="sentence" data-level="1" data-key="grp-label" data-xp="17" data-slot="grp" data-text="Label">Label</button>
+              <button class="chip" type="button" data-action="sentence" data-level="1" data-key="grp-cc" data-xp="17" data-slot="grp" data-text="Cost Category">Cost Category</button>
+            </div>
+            <div class="readout" id="sentence-1">Perspective: pick at least one source and one grouping.</div>
+          </div>
+          <div class="card-footer"><span class="card-xp-pill" data-xppill>0 / 150 XP</span></div>
+        </div>
+      </div>
+
+      <!-- CARD 2 -->
+      <div class="card inform" data-level="2" data-maxxp="150">
+        <div class="card-inner">
+          <span class="card-phase-pill inform">Inform</span>
+          <div class="card-head">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-tag"/></svg></div>
+            <div><div class="card-num">Mission 02</div><h3 class="card-title">Map a Cost Category</h3></div>
+          </div>
+          <p class="card-brief"><span class="hl">Cost Categories</span> turn raw cloud spend into business language: an operand (account, project, label) matched against an operator collects resources into a named bucket &mdash; the base for showback and chargeback.</p>
+          <div class="challenge">
+            <span class="challenge-label">Pick an operand</span>
+            <div class="chip-row">
+              <button class="chip" type="button" data-action="sentence" data-level="2" data-key="operand-account" data-xp="60" data-slot="operand" data-text="AWS Account">AWS Account</button>
+              <button class="chip" type="button" data-action="sentence" data-level="2" data-key="operand-project" data-xp="60" data-slot="operand" data-text="GCP Project">GCP Project</button>
+              <button class="chip" type="button" data-action="sentence" data-level="2" data-key="operand-label" data-xp="60" data-slot="operand" data-text="Resource Label">Resource Label</button>
+            </div>
+            <span class="challenge-label">Pick an operator</span>
+            <div class="chip-row">
+              <button class="chip" type="button" data-action="sentence" data-level="2" data-key="operator-in" data-xp="40" data-slot="operator" data-text="IN">IN</button>
+              <button class="chip" type="button" data-action="sentence" data-level="2" data-key="operator-notin" data-xp="40" data-slot="operator" data-text="NOT IN">NOT IN</button>
+              <button class="chip" type="button" data-action="sentence" data-level="2" data-key="operator-like" data-xp="40" data-slot="operator" data-text="LIKE">LIKE</button>
+            </div>
+            <div class="field-row">
+              <input class="text-input" id="bucketNameInput" type="text" placeholder="Name the bucket, e.g. production" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="readout" id="sentence-2">Rule: pick an operand and operator, then name a bucket.</div>
+          </div>
+          <div class="card-footer"><span class="card-xp-pill" data-xppill>0 / 150 XP</span></div>
+        </div>
+      </div>
+
+      <!-- CARD 3 -->
+      <div class="card inform" data-level="3" data-maxxp="150">
+        <div class="card-inner">
+          <span class="card-phase-pill inform">Inform</span>
+          <div class="card-head">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-wallet"/></svg></div>
+            <div><div class="card-num">Mission 03</div><h3 class="card-title">Set a Budget</h3></div>
+          </div>
+          <p class="card-brief">A <span class="hl">Budget</span> pins a dollar line to a Perspective and a time period. Harness tracks actual spend against it and pings you by email or Slack as you close in on the edge.</p>
+          <div class="challenge">
+            <span class="challenge-label">Set the amount</span>
+            <div class="field-row">
+              <input class="text-input" id="budgetAmountInput" type="number" min="1" placeholder="$ e.g. 50000" autocomplete="off">
+            </div>
+            <span class="challenge-label">Pick a period</span>
+            <div class="chip-row">
+              <button class="chip" type="button" data-action="sentence" data-level="3" data-key="period-monthly" data-xp="50" data-slot="period" data-text="Monthly">Monthly</button>
+              <button class="chip" type="button" data-action="sentence" data-level="3" data-key="period-quarterly" data-xp="50" data-slot="period" data-text="Quarterly">Quarterly</button>
+              <button class="chip" type="button" data-action="sentence" data-level="3" data-key="period-yearly" data-xp="50" data-slot="period" data-text="Yearly">Yearly</button>
+            </div>
+            <span class="challenge-label">Set an alert threshold</span>
+            <div class="chip-row">
+              <button class="chip" type="button" data-action="sentence" data-level="3" data-key="threshold-50" data-xp="50" data-slot="threshold" data-text="50">50%</button>
+              <button class="chip" type="button" data-action="sentence" data-level="3" data-key="threshold-80" data-xp="50" data-slot="threshold" data-text="80">80%</button>
+              <button class="chip" type="button" data-action="sentence" data-level="3" data-key="threshold-100" data-xp="50" data-slot="threshold" data-text="100">100%</button>
+            </div>
+            <div class="readout" id="sentence-3">Enter an amount and pick a period + threshold to arm the alert.</div>
+          </div>
+          <div class="card-footer"><span class="card-xp-pill" data-xppill>0 / 150 XP</span></div>
+        </div>
+      </div>
+
+      <!-- CARD 4 -->
+      <div class="card optimize" data-level="4" data-maxxp="200">
+        <div class="card-inner">
+          <span class="card-phase-pill optimize">Optimize</span>
+          <div class="card-head">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-sliders"/></svg></div>
+            <div><div class="card-num">Mission 04</div><h3 class="card-title">Action a Recommendation</h3></div>
+          </div>
+          <p class="card-brief"><span class="hl">Recommendations</span> scan AWS EC2, Azure VMs, Kubernetes workloads and node pools, and ECR image storage for oversized or idle resources &mdash; each with a Potential Monthly Savings figure attached.</p>
+          <div class="challenge">
+            <span class="challenge-label">Clear the queue</span>
+            <div class="action-grid">
+              <div class="action-row" data-row>
+                <span class="action-name">prod-api &middot; EC2 m5.4xlarge</span>
+                <span class="action-figure">$1,240/mo</span>
+                <button class="action-btn" type="button" data-action="verdict" data-level="4" data-key="r1" data-xp="67" data-verdict="applied" data-savings="1240" data-reason="Resized to m5.xlarge. Auto Inference confirms the saving in 24&ndash;48 hrs.">Apply</button>
+                <button class="action-btn" type="button" data-action="verdict" data-level="4" data-key="r1" data-xp="67" data-verdict="ignored" data-savings="0" data-reason="Added to the ignore list.">Ignore</button>
+              </div>
+              <div class="action-row" data-row>
+                <span class="action-name">checkout-svc &middot; K8s workload</span>
+                <span class="action-figure">$860/mo</span>
+                <button class="action-btn" type="button" data-action="verdict" data-level="4" data-key="r2" data-xp="67" data-verdict="applied" data-savings="860" data-reason="Requests/limits right-sized to observed usage.">Apply</button>
+                <button class="action-btn" type="button" data-action="verdict" data-level="4" data-key="r2" data-xp="67" data-verdict="ignored" data-savings="0" data-reason="Added to the ignore list.">Ignore</button>
+              </div>
+              <div class="action-row" data-row>
+                <span class="action-name">build-cache &middot; Amazon ECR</span>
+                <span class="action-figure">$310/mo</span>
+                <button class="action-btn" type="button" data-action="verdict" data-level="4" data-key="r3" data-xp="66" data-verdict="applied" data-savings="310" data-reason="Unused image tags purged.">Apply</button>
+                <button class="action-btn" type="button" data-action="verdict" data-level="4" data-key="r3" data-xp="66" data-verdict="ignored" data-savings="0" data-reason="Added to the ignore list.">Ignore</button>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer"><span class="card-xp-pill" data-xppill>0 / 200 XP</span></div>
+        </div>
+      </div>
+
+      <!-- CARD 5 -->
+      <div class="card optimize" data-level="5" data-maxxp="200">
+        <div class="card-inner">
+          <span class="card-phase-pill optimize">Optimize</span>
+          <div class="card-head">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-power"/></svg></div>
+            <div><div class="card-num">Mission 05</div><h3 class="card-title">Write an AutoStopping Rule</h3></div>
+          </div>
+          <p class="card-brief"><span class="hl">AutoStopping Rules</span> watch for idle compute &mdash; EC2, ECS, Kubernetes workloads, VMs behind a reverse proxy &mdash; and shut it down automatically, waking it back up the instant a real request arrives.</p>
+          <div class="challenge">
+            <span class="challenge-label">Pick a resource type</span>
+            <div class="chip-row">
+              <button class="chip" type="button" data-action="sentence" data-level="5" data-key="res-ec2" data-xp="60" data-slot="res" data-text="EC2">EC2</button>
+              <button class="chip" type="button" data-action="sentence" data-level="5" data-key="res-ecs" data-xp="60" data-slot="res" data-text="ECS">ECS</button>
+              <button class="chip" type="button" data-action="sentence" data-level="5" data-key="res-k8s" data-xp="60" data-slot="res" data-text="Kubernetes">Kubernetes</button>
+              <button class="chip" type="button" data-action="sentence" data-level="5" data-key="res-vm" data-xp="60" data-slot="res" data-text="VM (reverse proxy)">VM (reverse proxy)</button>
+            </div>
+            <span class="challenge-label">Set the idle window</span>
+            <div class="chip-row">
+              <button class="chip" type="button" data-action="sentence" data-level="5" data-key="idle-15" data-xp="60" data-slot="idle" data-text="15 min">15 min</button>
+              <button class="chip" type="button" data-action="sentence" data-level="5" data-key="idle-30" data-xp="60" data-slot="idle" data-text="30 min">30 min</button>
+              <button class="chip" type="button" data-action="sentence" data-level="5" data-key="idle-60" data-xp="60" data-slot="idle" data-text="1 hr">1 hr</button>
+            </div>
+            <div class="switch-row">
+              <button class="switch" id="autostopSwitch" type="button" role="switch" aria-checked="false" data-action="switch" data-level="5" data-key="arm" data-xp="80"><span class="knob"></span></button>
+              <span class="hint">Arm the rule</span>
+            </div>
+            <div class="stage-track" id="autostopStages">
+              <span class="stage-chip">Idle detected</span><span class="stage-chip">Stopping&hellip;</span><span class="stage-chip">Stopped ($0/hr)</span><span class="stage-chip">Request in</span><span class="stage-chip">Waking&hellip;</span><span class="stage-chip">Running</span>
+            </div>
+          </div>
+          <div class="card-footer"><span class="card-xp-pill" data-xppill>0 / 200 XP</span></div>
+        </div>
+      </div>
+
+      <!-- CARD 6 -->
+      <div class="card optimize" data-level="6" data-maxxp="200">
+        <div class="card-inner">
+          <span class="card-phase-pill optimize">Optimize</span>
+          <div class="card-head">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-coins"/></svg></div>
+            <div><div class="card-num">Mission 06</div><h3 class="card-title">Orchestrate a Commitment</h3></div>
+          </div>
+          <p class="card-brief"><span class="hl">Commitment Orchestrator</span> watches your EC2 and RDS usage, forecasts what you'll actually run, and automatically buys, exchanges, or lets go of Reserved Instances and Savings Plans.</p>
+          <div class="challenge">
+            <span class="challenge-label">Run the analysis</span>
+            <button class="action-btn" type="button" id="commitBtn" data-action="reveal" data-level="6" data-key="run" data-xp="200" data-target="#commitReport">Run commitment analysis</button>
+            <div class="report-panel" id="commitReport">
+              <div class="report-grid">
+                <div class="report-stat"><b>62%&rarr;91%</b><span>Compute coverage</span></div>
+                <div class="report-stat"><b>97%</b><span>Utilization</span></div>
+              </div>
+              <div class="report-rec">Buy a 12-month Compute Savings Plan covering prod-api and checkout-svc.</div>
+            </div>
+          </div>
+          <div class="card-footer"><span class="card-xp-pill" data-xppill>0 / 200 XP</span></div>
+        </div>
+      </div>
+
+      <!-- CARD 7 -->
+      <div class="card operate" data-level="7" data-maxxp="200">
+        <div class="card-inner">
+          <span class="card-phase-pill operate">Operate</span>
+          <div class="card-head">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-radar"/></svg></div>
+            <div><div class="card-num">Mission 07</div><h3 class="card-title">Catch an Anomaly</h3></div>
+          </div>
+          <p class="card-brief"><span class="hl">Anomaly Detection</span> runs a statistical forecasting model across 42 days of history for every account, cost bucket, and namespace, flagging breaks from forecast with a confidence score and severity tier.</p>
+          <div class="challenge">
+            <span class="challenge-label">Sweep for anomalies</span>
+            <div class="action-grid">
+              <div class="action-row" data-row>
+                <span class="action-name">prod-cluster &middot; us-east-1</span>
+                <span class="action-figure">+142% vs forecast</span>
+                <button class="action-btn" type="button" data-action="verdict" data-level="7" data-key="a1" data-xp="67" data-verdict="critical" data-reason="Confidence 96% &middot; cost impact over $5,000 &mdash; Critical.">Sweep</button>
+              </div>
+              <div class="action-row" data-row>
+                <span class="action-name">data-pipeline &middot; GCP</span>
+                <span class="action-figure">+58% vs forecast</span>
+                <button class="action-btn" type="button" data-action="verdict" data-level="7" data-key="a2" data-xp="67" data-verdict="medium" data-reason="Confidence 88% &middot; cost impact over $1,000 &mdash; Medium.">Sweep</button>
+              </div>
+              <div class="action-row" data-row>
+                <span class="action-name">staging-eks &middot; Kubernetes</span>
+                <span class="action-figure">+12% vs forecast</span>
+                <button class="action-btn" type="button" data-action="verdict" data-level="7" data-key="a3" data-xp="66" data-verdict="low" data-reason="Confidence 61% &middot; below the notable-impact line &mdash; Low.">Sweep</button>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer"><span class="card-xp-pill" data-xppill>0 / 200 XP</span></div>
+        </div>
+      </div>
+
+      <!-- CARD 8 -->
+      <div class="card operate" data-level="8" data-maxxp="150">
+        <div class="card-inner">
+          <span class="card-phase-pill operate">Operate</span>
+          <div class="card-head">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-clipboard"/></svg></div>
+            <div><div class="card-num">Mission 08</div><h3 class="card-title">Enforce a Governance Policy</h3></div>
+          </div>
+          <p class="card-brief"><span class="hl">Asset Governance</span> runs Cloud Custodian policies on a schedule &mdash; Resources, Filters, and Actions written in YAML. Evaluate first to see what would happen, then flip to Enforcement to act.</p>
+          <div class="challenge">
+            <span class="challenge-label">Pick a resource</span>
+            <div class="chip-row">
+              <button class="chip" type="button" data-action="sentence" data-level="8" data-key="gres-ec2" data-xp="45" data-slot="gres" data-text="EC2 instances">EC2 instances</button>
+              <button class="chip" type="button" data-action="sentence" data-level="8" data-key="gres-ebs" data-xp="45" data-slot="gres" data-text="EBS volumes">EBS volumes</button>
+              <button class="chip" type="button" data-action="sentence" data-level="8" data-key="gres-s3" data-xp="45" data-slot="gres" data-text="S3 buckets">S3 buckets</button>
+            </div>
+            <span class="challenge-label">Pick a filter</span>
+            <div class="chip-row">
+              <button class="chip" type="button" data-action="sentence" data-level="8" data-key="gfilter-unattached" data-xp="45" data-slot="gfilter" data-text="unattached">unattached</button>
+              <button class="chip" type="button" data-action="sentence" data-level="8" data-key="gfilter-untagged" data-xp="45" data-slot="gfilter" data-text="untagged">untagged</button>
+              <button class="chip" type="button" data-action="sentence" data-level="8" data-key="gfilter-idle" data-xp="45" data-slot="gfilter" data-text="idle 30+ days">idle 30+ days</button>
+            </div>
+            <span class="challenge-label">Pick an action</span>
+            <div class="chip-row">
+              <button class="chip" type="button" data-action="sentence" data-level="8" data-key="gaction-notify" data-xp="45" data-slot="gaction" data-text="notify">notify</button>
+              <button class="chip" type="button" data-action="sentence" data-level="8" data-key="gaction-tag" data-xp="45" data-slot="gaction" data-text="tag">tag</button>
+              <button class="chip" type="button" data-action="sentence" data-level="8" data-key="gaction-terminate" data-xp="45" data-slot="gaction" data-text="terminate (dry-run)">terminate (dry-run)</button>
+            </div>
+            <div class="switch-row">
+              <button class="switch" id="modeSwitch" type="button" role="switch" aria-checked="false" data-action="switch" data-level="8" data-key="mode" data-xp="15"><span class="knob"></span></button>
+              <span class="hint" id="modeLabel">Evaluation mode (dry-run) &mdash; flip to Enforcement</span>
+            </div>
+            <div class="readout" id="sentence-8">Policy: pick a resource, a filter, and an action.</div>
+          </div>
+          <div class="card-footer"><span class="card-xp-pill" data-xppill>0 / 150 XP</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="arrow-btn" id="nextBtn" type="button" aria-label="Next mission"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-arrow-r"/></svg></button>
+  </div>
+
+  <div class="dots" id="dots"></div>
+
+  <section class="finale" id="finale">
+    <svg class="finale-medal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-medal"/></svg>
+    <h2 id="finaleHeading">Perfect Cost Score</h2>
+    <p id="finaleSub">Clear all 8 missions to max out your score.</p>
+    <div class="finale-stats">
+      <div class="finale-stat"><b id="finaleXp">0</b><span>Total XP</span></div>
+      <div class="finale-stat"><b id="finaleMissions">0/8</b><span>Cleared</span></div>
+      <div class="finale-stat"><b id="finaleSavings">$0</b><span>Saved / mo</span></div>
+    </div>
+    <div class="finale-actions">
+      <button class="finale-btn primary" id="copyBtn" type="button">Copy my score</button>
+      <a class="finale-btn" href="https://developer.harness.io/docs/cloud-cost-management/get-started/overview/" target="_blank" rel="noopener">Open the real docs &rarr;</a>
+    </div>
+  </section>
+
+  <p class="closing-note">8 missions &middot; ~7 interactive minutes &middot; Inform &rarr; Optimize &rarr; Operate &mdash; built from <a href="https://developer.harness.io/docs/cloud-cost-management/get-started/overview/" target="_blank" rel="noopener">developer.harness.io/docs/cloud-cost-management</a></p>
+</main>
+
+<div class="toast-region" id="toastRegion" aria-live="polite"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<script>
+(function(){
+  "use strict";
+  var LEVEL_MAX = {1:150,2:150,3:150,4:200,5:200,6:200,7:200,8:150};
+  var TOTAL_MAX = Object.values(LEVEL_MAX).reduce(function(a,b){return a+b;},0);
+  var RANKS = [
+    {min:0, name:"Crawl · Ad Hoc"},
+    {min:175, name:"Crawl · Getting Visibility"},
+    {min:450, name:"Walk · Allocating Cost"},
+    {min:750, name:"Walk · Optimizing Spend"},
+    {min:1050, name:"Run · Automating Governance"},
+    {min:1300, name:"Run · FinOps Native"}
+  ];
+  var STORE_KEY = "cost-score-progress-v1";
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var CARD_COUNT = 8;
+
+  var state = {awarded:{}, levelXp:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0}, savings:0};
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(parsed && parsed.awarded && parsed.levelXp){ state = parsed; if(typeof state.savings !== "number") state.savings = 0; }
+      }
+    }catch(e){}
+  }
+  function saveState(){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){}
+  }
+
+  function totalXp(){ var t=0; for(var k in state.levelXp){ t += state.levelXp[k]; } return t; }
+  function rankFor(xp){ var r = RANKS[0]; for(var i=0;i<RANKS.length;i++){ if(xp >= RANKS[i].min) r = RANKS[i]; } return r.name; }
+  function clearedCount(){ var c=0; for(var k in state.levelXp){ if(state.levelXp[k] >= LEVEL_MAX[k]) c++; } return c; }
+
+  var track = document.getElementById("track");
+  var dotsWrap = document.getElementById("dots");
+  for(var i=0;i<CARD_COUNT;i++){
+    var d = document.createElement("button");
+    d.className = "dot"; d.type = "button"; d.setAttribute("data-idx", i);
+    d.setAttribute("aria-label", "Go to mission " + (i+1));
+    dotsWrap.appendChild(d);
+  }
+
+  var curIdx = 0;
+  function cardWidth(){ return track.clientWidth; }
+  // Authoritative index while a button/dot/tab drives navigation. Only the real-scroll
+  // listener (actual touch/trackpad swipe) is allowed to resync this from live scrollLeft --
+  // reading scrollLeft mid-animation elsewhere causes rapid clicks to desync (a mid-flight
+  // interpolated scrollLeft rounds to the wrong card, so quick repeat clicks can skip/stick).
+  function syncIdxFromScroll(){ curIdx = Math.max(0, Math.min(CARD_COUNT-1, Math.round(track.scrollLeft / cardWidth()))); }
+  function goTo(idx){
+    curIdx = Math.max(0, Math.min(CARD_COUNT-1, idx));
+    track.scrollTo({left: curIdx*cardWidth(), behavior: reduceMotion ? "auto" : "smooth"});
+    updateNav();
+  }
+
+  function renderAll(){
+    var xp = totalXp();
+    document.getElementById("xpValue").textContent = xp;
+    document.getElementById("rankName").textContent = rankFor(xp).split("·")[0].trim();
+    document.getElementById("savingsValue").textContent = "$" + state.savings.toLocaleString();
+
+    document.querySelectorAll(".card").forEach(function(card){
+      var lvl = card.getAttribute("data-level");
+      var max = LEVEL_MAX[lvl];
+      var cur = state.levelXp[lvl] || 0;
+      var pill = card.querySelector("[data-xppill]");
+      if(pill) pill.textContent = cur + " / " + max + " XP";
+      card.classList.toggle("cleared", cur >= max);
+    });
+
+    document.querySelectorAll("[data-action]").forEach(function(el){
+      var lvl = el.getAttribute("data-level"), key = el.getAttribute("data-key");
+      if(!lvl || !key) return;
+      var id = lvl + ":" + key;
+      var isDone = !!state.awarded[id];
+      if(el.classList.contains("chip")) el.classList.toggle("done", isDone);
+      if(el.classList.contains("switch")){ el.classList.toggle("on", isDone); el.setAttribute("aria-checked", isDone ? "true":"false"); }
+    });
+
+    if(state.awarded["5:arm"]) lightStages();
+    if(state.awarded["8:mode"]){
+      var ml = document.getElementById("modeLabel");
+      if(ml) ml.textContent = "Enforcement mode (live) — acting on matches now";
+    }
+    document.querySelectorAll('[data-row]').forEach(function(row){
+      var btns = row.querySelectorAll('[data-action="verdict"]');
+      if(btns.length && !row.querySelector(".verdict-pill")){
+        var lvl = btns[0].getAttribute("data-level"), key = btns[0].getAttribute("data-key");
+        var chosen = state.awarded["chosen:"+lvl+":"+key];
+        if(chosen){
+          btns.forEach(function(b){ if(b.getAttribute("data-verdict") === chosen) showVerdict(b, row); });
+        }
+      }
+    });
+    if(state.awarded["6:run"]){
+      var panel = document.getElementById("commitReport");
+      if(panel) panel.classList.add("shown");
+    }
+
+    rebuildSentence(1);
+    rebuildSentence(2);
+    rebuildSentence(3);
+    rebuildSentence(8);
+
+    var mc = clearedCount();
+    document.getElementById("finaleXp").textContent = xp;
+    document.getElementById("finaleMissions").textContent = mc + "/8";
+    document.getElementById("finaleSavings").textContent = "$" + state.savings.toLocaleString();
+    var finale = document.getElementById("finale");
+    if(mc >= 8){
+      document.getElementById("finaleHeading").textContent = "Perfect Cost Score — earned";
+      document.getElementById("finaleSub").textContent = "All 8 missions cleared. Inform, Optimize, and Operate are all covered.";
+    } else {
+      document.getElementById("finaleHeading").textContent = "Perfect Cost Score";
+      document.getElementById("finaleSub").textContent = "Clear all 8 missions to max out your score.";
+    }
+
+    updateNav();
+  }
+
+  function updateNav(){
+    var idx = curIdx;
+    document.querySelectorAll(".dot").forEach(function(d,i){
+      d.classList.toggle("active", i===idx);
+      var card = track.children[i];
+      d.classList.toggle("cleared", card && card.classList.contains("cleared"));
+    });
+    document.getElementById("prevBtn").disabled = idx <= 0;
+    document.getElementById("nextBtn").disabled = idx >= CARD_COUNT-1;
+    var phase = idx <= 2 ? "inform" : idx <= 5 ? "optimize" : "operate";
+    document.querySelectorAll(".phase-tab").forEach(function(t){
+      t.classList.toggle("active", t.classList.contains(phase));
+    });
+  }
+
+  function toast(msg, xp){
+    var region = document.getElementById("toastRegion");
+    var t = document.createElement("div");
+    t.className = "toast";
+    t.innerHTML = msg + (xp ? '  <b>+' + xp + ' XP</b>' : '');
+    region.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 2400);
+  }
+
+  function confettiBurst(x, y){
+    if(reduceMotion) return;
+    var canvas = document.getElementById("confetti-canvas");
+    var dpr = window.devicePixelRatio || 1;
+    if(canvas.width !== window.innerWidth*dpr){ canvas.width = window.innerWidth*dpr; canvas.height = window.innerHeight*dpr; }
+    var ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var colors = ["#6E4FF5","#16A97A","#FF7A59","#FFC857"];
+    var particles = [];
+    for(var i=0;i<22;i++){
+      particles.push({x:x,y:y,vx:(Math.random()-0.5)*7,vy:-Math.random()*6-2,rot:Math.random()*Math.PI,vr:(Math.random()-0.5)*0.3,w:5+Math.random()*4,h:5+Math.random()*4,color:colors[i%colors.length],life:1,round:i%2===0});
+    }
+    var start=null;
+    function frame(ts){
+      if(!start) start=ts;
+      var dt=0.6;
+      ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);
+      var alive=false;
+      particles.forEach(function(p){
+        p.vy += 0.25*dt; p.x += p.vx*dt; p.y += p.vy*dt; p.rot += p.vr*dt; p.life -= 0.016*dt;
+        if(p.life>0){
+          alive=true; ctx.save(); ctx.globalAlpha=Math.max(p.life,0); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.color;
+          if(p.round){ ctx.beginPath(); ctx.arc(0,0,p.w/2,0,Math.PI*2); ctx.fill(); }
+          else{ ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); }
+          ctx.restore();
+        }
+      });
+      if(alive) requestAnimationFrame(frame); else ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function award(el, lvl, key, xp, label){
+    var id = lvl + ":" + key;
+    if(state.awarded[id]) return false;
+    state.awarded[id] = true;
+    state.levelXp[lvl] = Math.min(LEVEL_MAX[lvl], (state.levelXp[lvl]||0) + xp);
+    var rect = el.getBoundingClientRect();
+    confettiBurst(rect.left + rect.width/2, rect.top + rect.height/2);
+    toast(label || "Nice.", xp);
+    saveState();
+    renderAll();
+    var card = el.closest(".card");
+    if(card && card.classList.contains("cleared")){
+      setTimeout(function(){ toast("Mission " + lvl + " cleared —"); }, 350);
+    }
+    return true;
+  }
+
+  function lightStages(){
+    var container = document.getElementById("autostopStages");
+    if(!container) return;
+    container.querySelectorAll(".stage-chip").forEach(function(chip,i){
+      setTimeout(function(){ chip.classList.add("lit"); }, i*230);
+    });
+  }
+
+  function showVerdict(btn, row){
+    var verdict = btn.getAttribute("data-verdict");
+    var reason = btn.getAttribute("data-reason");
+    if(row.querySelector(".verdict-pill")) return;
+    var pill = document.createElement("span");
+    pill.className = "verdict-pill " + verdict;
+    pill.textContent = verdict;
+    row.querySelectorAll('[data-action="verdict"]').forEach(function(b){ b.remove(); });
+    row.appendChild(pill);
+    var reasonEl = document.createElement("span");
+    reasonEl.className = "action-reason";
+    reasonEl.innerHTML = reason;
+    row.appendChild(reasonEl);
+  }
+
+  function rebuildSentence(lvl){
+    var box = document.getElementById("sentence-" + lvl);
+    if(!box) return;
+    if(lvl === 1){
+      var src = Array.from(document.querySelectorAll('.chip[data-slot="src"].done')).map(function(c){return c.getAttribute("data-text");});
+      var grp = Array.from(document.querySelectorAll('.chip[data-slot="grp"].done')).map(function(c){return c.getAttribute("data-text");});
+      if(!src.length && !grp.length){ box.innerHTML = "Perspective: pick at least one source and one grouping."; return; }
+      box.innerHTML = "Perspective: <b>" + (src.join(" + ")||"&hellip;") + "</b> spend, grouped by <b>" + (grp.join(" / ")||"&hellip;") + "</b>.";
+    } else if(lvl === 2){
+      var operand = document.querySelector('.chip[data-slot="operand"].done');
+      var operator = document.querySelector('.chip[data-slot="operator"].done');
+      var bucket = document.getElementById("bucketNameInput").value.trim();
+      if(!operand && !operator && bucket.length<2){ box.innerHTML = "Rule: pick an operand and operator, then name a bucket."; return; }
+      box.innerHTML = "Rule: <b>" + (operand?operand.getAttribute("data-text"):"&hellip;") + "</b> <b>" + (operator?operator.getAttribute("data-text"):"&hellip;") + "</b> &rarr; bucket &lsquo;<b>" + (bucket||"&hellip;") + "</b>&rsquo;.";
+    } else if(lvl === 3){
+      var period = document.querySelector('.chip[data-slot="period"].done');
+      var threshold = document.querySelector('.chip[data-slot="threshold"].done');
+      var amountVal = parseFloat(document.getElementById("budgetAmountInput").value);
+      if(!period && !threshold && !(amountVal>0)){ box.innerHTML = "Enter an amount and pick a period + threshold to arm the alert."; return; }
+      var threshNum = threshold ? parseFloat(threshold.getAttribute("data-text")) : 0;
+      var fireAt = (amountVal>0 && threshNum) ? "$" + Math.round(amountVal*threshNum/100).toLocaleString() : "&hellip;";
+      box.innerHTML = "Budget: <b>$" + (amountVal>0?amountVal.toLocaleString():"&hellip;") + "</b> / <b>" + (period?period.getAttribute("data-text"):"&hellip;") + "</b> &mdash; alert fires at <b>" + fireAt + "</b> (" + (threshold?threshold.getAttribute("data-text"):"&hellip;") + "%).";
+    } else if(lvl === 8){
+      var gres = document.querySelector('.chip[data-slot="gres"].done');
+      var gfilter = document.querySelector('.chip[data-slot="gfilter"].done');
+      var gaction = document.querySelector('.chip[data-slot="gaction"].done');
+      if(!gres && !gfilter && !gaction){ box.innerHTML = "Policy: pick a resource, a filter, and an action."; return; }
+      box.innerHTML = "Policy: find <b>" + (gres?gres.getAttribute("data-text"):"&hellip;") + "</b> that are <b>" + (gfilter?gfilter.getAttribute("data-text"):"&hellip;") + "</b> &rarr; <b>" + (gaction?gaction.getAttribute("data-text"):"&hellip;") + "</b>.";
+    }
+  }
+
+  document.addEventListener("click", function(e){
+    var el = e.target.closest("[data-action]");
+    if(!el) return;
+    var action = el.getAttribute("data-action");
+    var lvl = el.getAttribute("data-level");
+    var key = el.getAttribute("data-key");
+    var xp = parseInt(el.getAttribute("data-xp")||"0",10);
+
+    if(action === "sentence"){
+      var slot = el.getAttribute("data-slot");
+      var multi = (lvl==="1" && (slot==="src"||slot==="grp"));
+      if(!multi){
+        document.querySelectorAll('.chip[data-slot="'+slot+'"][data-level="'+lvl+'"]').forEach(function(sib){
+          if(sib !== el){
+            var sid = sib.getAttribute("data-level")+":"+sib.getAttribute("data-key");
+            if(state.awarded[sid]){
+              state.levelXp[lvl] = Math.max(0, (state.levelXp[lvl]||0) - parseInt(sib.getAttribute("data-xp")||"0",10));
+              delete state.awarded[sid];
+            }
+          }
+        });
+      }
+      award(el, lvl, key, xp, el.getAttribute("data-text") + " set —");
+    } else if(action === "verdict"){
+      var already = state.awarded["chosen:"+lvl+":"+key];
+      if(!already){
+        state.awarded["chosen:"+lvl+":"+key] = el.getAttribute("data-verdict");
+        var sav = parseInt(el.getAttribute("data-savings")||"0",10);
+        if(sav > 0){ state.savings += sav; }
+      }
+      award(el, lvl, key, xp, "Logged —");
+      var row = el.closest("[data-row]");
+      if(row) showVerdict(el, row);
+    } else if(action === "switch"){
+      var wasOn = el.classList.contains("on");
+      if(!wasOn){
+        award(el, lvl, key, xp, key==="arm" ? "Rule armed —" : "Mode flipped —");
+        if(key==="arm") lightStages();
+        if(key==="mode"){ var ml=document.getElementById("modeLabel"); if(ml) ml.textContent="Enforcement mode (live) — acting on matches now"; }
+      }
+    } else if(action === "reveal"){
+      award(el, lvl, key, xp, "Analysis complete —");
+      var target = document.querySelector(el.getAttribute("data-target"));
+      if(target) target.classList.add("shown");
+    }
+  });
+
+  document.getElementById("bucketNameInput").addEventListener("input", function(){
+    var v = this.value.trim();
+    this.classList.toggle("valid", v.length>1);
+    rebuildSentence(2);
+    if(v.length>1 && !state.awarded["2:bucket"]){ award(this, "2", "bucket", 50, "Bucket named —"); }
+  });
+  document.getElementById("budgetAmountInput").addEventListener("input", function(){
+    var v = parseFloat(this.value);
+    this.classList.toggle("valid", v>0);
+    rebuildSentence(3);
+    if(v>0 && !state.awarded["3:amount"]){ award(this, "3", "amount", 50, "Amount set —"); }
+  });
+
+  document.getElementById("startBtn").addEventListener("click", function(){
+    document.querySelector(".phase-tabs").scrollIntoView({behavior: reduceMotion?"auto":"smooth", block:"start"});
+  });
+  document.getElementById("prevBtn").addEventListener("click", function(){ goTo(curIdx-1); });
+  document.getElementById("nextBtn").addEventListener("click", function(){ goTo(curIdx+1); });
+  dotsWrap.addEventListener("click", function(e){
+    var d = e.target.closest(".dot");
+    if(d) goTo(parseInt(d.getAttribute("data-idx"),10));
+  });
+  document.querySelectorAll(".phase-tab").forEach(function(t){
+    t.addEventListener("click", function(){ goTo(parseInt(t.getAttribute("data-jump"),10)); });
+  });
+  var scrollTimer;
+  track.addEventListener("scroll", function(){
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(function(){ syncIdxFromScroll(); updateNav(); }, 80);
+  });
+  window.addEventListener("resize", function(){ goTo(curIdx); });
+
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    if(!confirm("Reset your Cost Score back to zero?")) return;
+    state = {awarded:{}, levelXp:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0}, savings:0};
+    saveState();
+    document.getElementById("bucketNameInput").value = "";
+    document.getElementById("budgetAmountInput").value = "";
+    location.reload();
+  });
+
+  document.getElementById("copyBtn").addEventListener("click", function(){
+    var xp = totalXp(), mc = clearedCount(), rank = rankFor(xp);
+    var summary = "Cost Score — " + mc + "/8 missions, " + xp + " XP, $" + state.savings.toLocaleString() + "/mo unlocked, maturity: " + rank + ".";
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(summary).then(function(){ toast("Score copied to clipboard"); }).catch(function(){ toast(summary); });
+    } else { toast(summary); }
+  });
+
+  loadState();
+  renderAll();
+  requestAnimationFrame(function(){ goTo(0); });
+})();
+</script>
+</body>
+</html>

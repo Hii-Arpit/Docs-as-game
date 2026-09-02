@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artifact Voyage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  /* ---------- tokens ---------- */
+  :root{
+    --paper:#F7F1E1;
+    --paper-2:#EFE4C7;
+    --card:#FFFCF4;
+    --ink:#12262B;
+    --ink-soft:#4B6469;
+    --sea:#0E7C8C;
+    --sea-deep:#0A5B68;
+    --cargo:#EF6C2E;
+    --cargo-deep:#C4501A;
+    --signal:#E8A317;
+    --signal-ink:#40270A;
+    --coral:#D8453B;
+    --moss:#2E8F58;
+    --line:rgba(18,38,43,0.16);
+    --line-strong:rgba(18,38,43,0.32);
+    --shadow:0 1px 0 rgba(18,38,43,0.06), 0 10px 24px -14px rgba(18,38,43,0.35);
+    --font-display:'Big Shoulders Display','Arial Narrow',sans-serif;
+    --font-body:'Manrope','Segoe UI',system-ui,sans-serif;
+    --font-mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0E2027;
+      --paper-2:#132A31;
+      --card:#173038;
+      --ink:#F3ECD9;
+      --ink-soft:#A9C3C6;
+      --sea:#3FC1D3;
+      --sea-deep:#218C9C;
+      --cargo:#FF8A4C;
+      --cargo-deep:#E1652A;
+      --signal:#F0B934;
+      --signal-ink:#2B1B04;
+      --coral:#FF6A60;
+      --moss:#57C486;
+      --line:rgba(243,236,217,0.16);
+      --line-strong:rgba(243,236,217,0.34);
+      --shadow:0 1px 0 rgba(0,0,0,0.2), 0 10px 28px -14px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0E2027;
+    --paper-2:#132A31;
+    --card:#173038;
+    --ink:#F3ECD9;
+    --ink-soft:#A9C3C6;
+    --sea:#3FC1D3;
+    --sea-deep:#218C9C;
+    --cargo:#FF8A4C;
+    --cargo-deep:#E1652A;
+    --signal:#F0B934;
+    --signal-ink:#2B1B04;
+    --coral:#FF6A60;
+    --moss:#57C486;
+    --line:rgba(243,236,217,0.16);
+    --line-strong:rgba(243,236,217,0.34);
+    --shadow:0 1px 0 rgba(0,0,0,0.2), 0 10px 28px -14px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 39px, var(--line) 39px 40px),
+      repeating-linear-gradient(90deg, transparent 0 39px, var(--line) 39px 40px),
+      var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:16px;
+    line-height:1.55;
+  }
+  h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;letter-spacing:0.01em;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+  ::selection{background:var(--cargo);color:var(--card);}
+
+  /* ---------- HUD ---------- */
+  .hud{
+    position:sticky; top:0; z-index:40;
+    display:flex; align-items:center; gap:18px;
+    padding:10px 20px;
+    background:var(--paper-2);
+    border-bottom:2px solid var(--ink);
+    box-shadow:var(--shadow);
+  }
+  .hud-rank{display:flex; flex-direction:column; min-width:128px;}
+  .hud-rank-label{font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink-soft);}
+  .hud-rank-name{font-family:var(--font-display); font-weight:800; font-size:19px; line-height:1.1;}
+  .hud-gauge{flex:1; position:relative; min-width:120px;}
+  .hud-gauge-track{
+    position:relative;
+    height:16px; border-radius:999px;
+    background:var(--card);
+    border:2px solid var(--ink);
+    overflow:hidden;
+  }
+  .hud-gauge-fill{
+    position:absolute; inset:0; width:0%;
+    background:linear-gradient(90deg, var(--signal), var(--cargo));
+    transition:width .5s cubic-bezier(.2,.9,.25,1);
+  }
+  .hud-gauge-ship{
+    position:absolute; top:50%; left:0%;
+    transform:translate(-50%,-50%);
+    transition:left .5s cubic-bezier(.2,.9,.25,1);
+    width:22px; height:22px; color:var(--ink);
+    filter:drop-shadow(0 1px 0 var(--paper));
+  }
+  .hud-gauge-caption{display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--ink-soft); margin-top:3px; font-variant-numeric:tabular-nums;}
+  .hud-xp{font-family:var(--font-mono); font-weight:600; font-size:15px; white-space:nowrap; font-variant-numeric:tabular-nums;}
+  .hud-xp span{color:var(--cargo-deep); font-weight:700;}
+  .hud-reset{
+    border:2px solid var(--ink); background:var(--card); color:var(--ink);
+    font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase;
+    padding:8px 12px; border-radius:8px; cursor:pointer; white-space:nowrap;
+  }
+  .hud-reset:hover{background:var(--coral); color:var(--card); border-color:var(--coral);}
+  .hud-reset:focus-visible, button:focus-visible, [tabindex]:focus-visible{outline:3px solid var(--sea); outline-offset:2px;}
+
+  /* ---------- layout shell ---------- */
+  main{max-width:840px; margin:0 auto; padding:0 20px 120px;}
+
+  /* ---------- hero ---------- */
+  .hero{padding:56px 0 40px; text-align:center;}
+  .eyebrow{
+    display:inline-block; font-family:var(--font-mono); font-size:11px; letter-spacing:0.18em;
+    text-transform:uppercase; color:var(--sea-deep); border:1.5px dashed var(--line-strong);
+    padding:6px 14px; border-radius:999px; margin-bottom:22px;
+  }
+  .hero h1{font-size:clamp(34px,6vw,58px); font-weight:900; line-height:1.02;}
+  .hero h1 em{font-style:normal; color:var(--cargo-deep); text-decoration:underline; text-decoration-color:var(--signal); text-decoration-thickness:6px; text-underline-offset:6px;}
+  .hero-sub{max-width:58ch; margin:20px auto 0; font-size:17px; color:var(--ink-soft);}
+
+  .compare{display:grid; grid-template-columns:1fr auto 1fr; align-items:stretch; gap:14px; margin:38px 0 8px; text-align:left;}
+  .compare-card{background:var(--card); border:2px solid var(--ink); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:10px;}
+  .compare-card.old{opacity:0.82;}
+  .compare-vs{align-self:center; font-family:var(--font-display); font-weight:900; font-size:22px; color:var(--ink-soft);}
+  .compare-tag{font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--ink-soft);}
+  .compare-title{font-family:var(--font-display); font-weight:800; font-size:20px;}
+  .pdf-lines{display:flex; flex-direction:column; gap:5px; margin:4px 0;}
+  .pdf-lines span{display:block; height:6px; border-radius:3px; background:var(--line-strong);}
+  .compare-stat{font-family:var(--font-mono); font-size:26px; font-weight:700; font-variant-numeric:tabular-nums;}
+  .compare-stat small{display:block; font-family:var(--font-body); font-size:11px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.06em;}
+  .compare-card.new .compare-stat{color:var(--sea-deep);}
+  .compare-card.old .compare-stat{color:var(--coral);}
+  .quest-preview{display:flex; gap:6px; margin:4px 0;}
+  .quest-dot{width:16px; height:16px; border-radius:5px; background:var(--paper-2); border:2px solid var(--ink); }
+  .quest-dot.on{background:var(--cargo); }
+
+  .start-btn{
+    margin-top:26px; font-family:var(--font-display); font-weight:800; font-size:19px;
+    background:var(--cargo); color:#241005; border:2px solid var(--ink); border-radius:10px;
+    padding:14px 30px; cursor:pointer; box-shadow:var(--shadow);
+    display:inline-flex; align-items:center; gap:10px;
+  }
+  .start-btn:hover{transform:translateY(-1px); background:var(--cargo-deep); color:var(--card);}
+  .start-btn svg{width:20px; height:20px;}
+
+  /* ---------- route ---------- */
+  .route{position:relative; padding-top:30px;}
+  .route-line{
+    position:absolute; left:27px; top:0; bottom:60px; width:0;
+    border-left:3px dashed var(--line-strong);
+    z-index:0;
+  }
+  .level-card{
+    position:relative; z-index:1;
+    display:grid; grid-template-columns:56px 1fr; gap:16px;
+    margin-bottom:34px;
+  }
+  .level-node{
+    width:56px; height:56px; border-radius:50%; background:var(--card); border:3px solid var(--ink);
+    display:flex; align-items:center; justify-content:center; color:var(--sea-deep);
+    box-shadow:var(--shadow); position:relative;
+  }
+  .level-node svg{width:26px; height:26px;}
+  .level-node .stamp{
+    position:absolute; inset:-6px; border-radius:50%; border:3px solid var(--moss);
+    display:flex; align-items:center; justify-content:center; opacity:0; transform:rotate(-14deg) scale(1.3);
+    color:var(--moss); background:color-mix(in srgb, var(--card) 82%, var(--moss) 18%);
+    transition:opacity .35s, transform .35s; pointer-events:none;
+  }
+  .level-card.cleared .level-node .stamp{opacity:1; transform:rotate(-14deg) scale(1);}
+  .level-card.cleared .level-node{border-color:var(--moss); color:var(--moss);}
+  .level-node .stamp svg{width:22px; height:22px;}
+
+  .level-body{
+    background:var(--card); border:2px solid var(--ink); border-radius:14px; padding:20px 22px;
+    box-shadow:var(--shadow);
+  }
+  .level-kicker{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+  .level-num{font-family:var(--font-mono); font-size:11px; letter-spacing:0.12em; color:var(--ink-soft); text-transform:uppercase;}
+  .level-xp-pill{
+    font-family:var(--font-mono); font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px;
+    background:var(--paper-2); border:1.5px solid var(--line-strong); color:var(--ink-soft); font-variant-numeric:tabular-nums;
+  }
+  .level-card.cleared .level-xp-pill{background:var(--moss); border-color:var(--moss); color:var(--card);}
+  .level-title{font-size:24px; font-weight:800; margin:4px 0 8px;}
+  .level-brief{color:var(--ink-soft); margin:0 0 16px; max-width:64ch;}
+  .level-brief code, .inline-code{
+    font-family:var(--font-mono); background:var(--paper-2); border:1px solid var(--line);
+    border-radius:4px; padding:1px 6px; font-size:0.92em; color:var(--sea-deep);
+  }
+
+  .challenge{border-top:1.5px dashed var(--line-strong); padding-top:16px;}
+  .challenge-label{font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--cargo-deep); margin-bottom:10px; display:block;}
+
+  /* chip / choice buttons (generic award targets) */
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    font-family:var(--font-mono); font-size:12.5px; padding:7px 12px; border-radius:8px;
+    background:var(--paper); border:1.5px solid var(--line-strong); color:var(--ink); cursor:pointer;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .chip:hover{border-color:var(--sea);}
+  .chip.done{background:var(--sea); border-color:var(--sea-deep); color:var(--card);}
+  .chip.more{opacity:0.7; cursor:default;}
+  .chip.more:hover{border-color:var(--line-strong);}
+
+  .field-row{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;}
+  .name-input{
+    font-family:var(--font-mono); font-size:14px; padding:9px 12px; border-radius:8px;
+    border:1.5px solid var(--line-strong); background:var(--paper); color:var(--ink); min-width:220px;
+  }
+  .name-input.valid{border-color:var(--moss); box-shadow:0 0 0 2px color-mix(in srgb, var(--moss) 25%, transparent);}
+  .hint{font-family:var(--font-mono); font-size:11px; color:var(--ink-soft);}
+
+  .toggle-row{display:flex; gap:10px;}
+  .toggle-btn{
+    font-family:var(--font-body); font-weight:700; font-size:13px; padding:9px 16px; border-radius:8px;
+    border:1.5px solid var(--line-strong); background:var(--paper); color:var(--ink); cursor:pointer;
+  }
+  .toggle-btn.done{background:var(--cargo); border-color:var(--cargo-deep); color:#241005;}
+
+  .step-list{display:flex; flex-direction:column; gap:8px; margin-top:6px;}
+  .step-btn{
+    display:flex; align-items:center; gap:10px; text-align:left; width:100%;
+    background:var(--paper); border:1.5px solid var(--line-strong); border-radius:9px; padding:11px 14px;
+    cursor:pointer; font-family:var(--font-body); font-size:14px; color:var(--ink);
+  }
+  .step-btn .box{width:18px; height:18px; border-radius:5px; border:2px solid var(--ink); flex:none; display:flex; align-items:center; justify-content:center;}
+  .step-btn .box svg{width:12px; height:12px; opacity:0;}
+  .step-btn.done{border-color:var(--moss); background:color-mix(in srgb, var(--card) 88%, var(--moss) 12%);}
+  .step-btn.done .box{background:var(--moss); border-color:var(--moss); color:var(--card);}
+  .step-btn.done .box svg{opacity:1;}
+  .step-detail{display:block; font-size:12px; color:var(--ink-soft); margin-top:2px;}
+
+  .code-panel{
+    background:var(--ink); color:var(--paper); font-family:var(--font-mono); font-size:12.5px;
+    border-radius:9px; padding:12px 14px; overflow-x:auto; margin:10px 0; border:1.5px solid var(--ink);
+  }
+  .code-panel .muted{opacity:0.55;}
+
+  .progress-sim{height:10px; border-radius:6px; background:var(--paper); border:1.5px solid var(--line-strong); overflow:hidden; margin-top:10px;}
+  .progress-sim-fill{height:100%; width:0%; background:var(--sea); transition:width 1s linear;}
+
+  .flip-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+  .flip-card{
+    border:1.5px solid var(--line-strong); border-radius:10px; background:var(--paper); padding:14px;
+    cursor:pointer; min-height:74px; display:flex; align-items:center; justify-content:center; text-align:center;
+  }
+  .flip-card .front{font-family:var(--font-mono); font-size:12px; letter-spacing:0.04em; color:var(--ink-soft);}
+  .flip-card .back{display:none; font-size:12.5px; color:var(--ink);}
+  .flip-card.flipped{background:var(--card); border-color:var(--sea);}
+  .flip-card.flipped .front{display:none;}
+  .flip-card.flipped .back{display:block;}
+
+  .scan-grid{display:flex; flex-direction:column; gap:10px;}
+  .scan-row{
+    display:flex; align-items:center; gap:12px; border:1.5px solid var(--line-strong); border-radius:10px;
+    padding:10px 12px; flex-wrap:wrap;
+  }
+  .scan-pkg{font-family:var(--font-mono); font-size:13px; min-width:150px;}
+  .scan-btn{
+    font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.06em;
+    padding:7px 12px; border-radius:7px; border:1.5px solid var(--ink); background:var(--card); cursor:pointer;
+  }
+  .scan-verdict{font-family:var(--font-mono); font-size:11.5px; font-weight:700; padding:5px 10px; border-radius:6px; letter-spacing:0.06em; text-transform:uppercase;}
+  .scan-verdict.passed{background:var(--moss); color:var(--card);}
+  .scan-verdict.warning{background:var(--signal); color:var(--signal-ink);}
+  .scan-verdict.blocked{background:var(--coral); color:var(--card);}
+  .scan-reason{flex-basis:100%; font-size:12px; color:var(--ink-soft);}
+
+  .rule-sentence{
+    margin-top:12px; font-family:var(--font-mono); font-size:13px; background:var(--paper); border:1.5px dashed var(--line-strong);
+    border-radius:8px; padding:10px 12px; color:var(--ink-soft);
+  }
+  .rule-sentence b{color:var(--ink); font-weight:600;}
+
+  .flare-switch{display:flex; align-items:center; gap:12px;}
+  .switch{
+    width:52px; height:28px; border-radius:999px; border:2px solid var(--ink); background:var(--paper);
+    position:relative; cursor:pointer; flex:none;
+  }
+  .switch .knob{position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--ink); transition:left .2s;}
+  .switch.on{background:var(--cargo);}
+  .switch.on .knob{left:28px; background:var(--card);}
+  .flare-events{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;}
+  .flare-event{font-family:var(--font-mono); font-size:11px; padding:5px 10px; border-radius:999px; border:1.5px solid var(--line-strong); color:var(--ink-soft); opacity:0.4; transition:opacity .25s, border-color .25s, color .25s;}
+  .flare-event.lit{opacity:1; border-color:var(--signal); color:var(--signal-ink); background:var(--signal);}
+
+  .toast-region{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:60; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none;}
+  .toast{
+    font-family:var(--font-mono); font-size:12.5px; background:var(--ink); color:var(--paper);
+    border-radius:999px; padding:9px 18px; box-shadow:var(--shadow); opacity:0; transform:translateY(8px);
+    animation:toastIn .25s forwards, toastOut .25s forwards 2.1s;
+  }
+  .toast b{color:var(--signal);}
+  @keyframes toastIn{to{opacity:1; transform:translateY(0);}}
+  @keyframes toastOut{to{opacity:0; transform:translateY(-6px);}}
+
+  #confetti-canvas{position:fixed; inset:0; pointer-events:none; z-index:55; width:100vw; height:100vh;}
+
+  /* ---------- finale ---------- */
+  .finale{
+    margin-top:20px; text-align:center; background:var(--ink); color:var(--paper);
+    border-radius:18px; padding:44px 28px; border:2px solid var(--ink); position:relative; overflow:hidden;
+  }
+  .finale::before{
+    content:""; position:absolute; inset:0;
+    background:repeating-linear-gradient(135deg, color-mix(in srgb, var(--paper) 6%, transparent) 0 14px, transparent 14px 28px);
+  }
+  .finale-inner{position:relative;}
+  .finale-trophy{width:64px; height:64px; margin:0 auto 14px; color:var(--signal);}
+  .finale h2{font-size:clamp(26px,4vw,38px); font-weight:900; color:var(--paper);}
+  .finale p{color:color-mix(in srgb, var(--paper) 72%, transparent); max-width:52ch; margin:12px auto 0;}
+  .finale-stats{display:flex; justify-content:center; gap:34px; margin:26px 0 6px; flex-wrap:wrap;}
+  .finale-stat b{display:block; font-family:var(--font-mono); font-size:28px; color:var(--signal); font-variant-numeric:tabular-nums;}
+  .finale-stat span{font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:color-mix(in srgb, var(--paper) 60%, transparent);}
+  .finale-actions{display:flex; justify-content:center; gap:12px; margin-top:22px; flex-wrap:wrap;}
+  .finale-btn{
+    font-family:var(--font-display); font-weight:800; font-size:15px; padding:11px 20px; border-radius:9px;
+    border:2px solid var(--paper); background:transparent; color:var(--paper); cursor:pointer;
+  }
+  .finale-btn.primary{background:var(--signal); color:var(--signal-ink); border-color:var(--signal);}
+
+  .closing-note{
+    margin:30px 0 0; text-align:center; font-family:var(--font-mono); font-size:12px; color:var(--ink-soft);
+    letter-spacing:0.02em;
+  }
+  .closing-note a{color:var(--sea-deep); text-decoration:underline;}
+
+  @media (max-width:560px){
+    .compare{grid-template-columns:1fr; }
+    .compare-vs{display:none;}
+    .level-card{grid-template-columns:44px 1fr;}
+    .level-node{width:44px; height:44px;}
+    .level-node svg{width:20px; height:20px;}
+    .route-line{left:21px;}
+    .flip-grid{grid-template-columns:1fr;}
+    .hud{flex-wrap:wrap;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+</style>
+</head>
+<body>
+
+<svg class="visually-hidden" aria-hidden="true">
+  <defs>
+    <symbol id="ic-crate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="6" width="16" height="14" rx="1"/><line x1="4" y1="13" x2="20" y2="13"/><line x1="12" y1="6" x2="12" y2="20"/>
+    </symbol>
+    <symbol id="ic-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="8" cy="12" r="4"/><line x1="12" y1="12" x2="20" y2="12"/><line x1="16" y1="12" x2="16" y2="16"/><line x1="19" y1="12" x2="19" y2="15"/>
+    </symbol>
+    <symbol id="ic-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="20" x2="12" y2="6"/><polyline points="6,12 12,6 18,12"/>
+    </symbol>
+    <symbol id="ic-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="4" x2="12" y2="18"/><polyline points="6,12 12,18 18,12"/>
+    </symbol>
+    <symbol id="ic-anchor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="20"/><line x1="7" y1="10" x2="17" y2="10"/><path d="M5,15 Q12,22 19,15"/>
+    </symbol>
+    <symbol id="ic-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12,3 L20,6 V12 C20,17 16,20.5 12,22 C8,20.5 4,17 4,12 V6 Z"/><polyline points="9,12 11.5,14.5 15.5,9.5"/>
+    </symbol>
+    <symbol id="ic-bin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="4" y1="7" x2="20" y2="7"/><path d="M6,7 L7,20 H17 L18,7"/><line x1="9" y1="4" x2="15" y2="4"/><line x1="9" y1="4" x2="9" y2="7"/><line x1="15" y1="4" x2="15" y2="7"/><line x1="10" y1="11" x2="10" y2="16"/><line x1="14" y1="11" x2="14" y2="16"/>
+    </symbol>
+    <symbol id="ic-flare" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6,17 V10 a6,6 0 0112,0 v7"/><line x1="4" y1="17" x2="20" y2="17"/><path d="M10,19 a2,2 0 004,0"/>
+    </symbol>
+    <symbol id="ic-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8,4 H16 V10 A4,4 0 0 1 8,10 Z"/><path d="M8,5 H4 V8 A4,4 0 0 0 8,9"/><path d="M16,5 H20 V8 A4,4 0 0 1 16,9"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="9" y1="18" x2="15" y2="18"/>
+    </symbol>
+    <symbol id="ic-ship" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4,15 L20,15 L18,20 L6,20 Z"/><line x1="12" y1="15" x2="12" y2="4"/><path d="M12,5 L17,9 L12,10 Z"/>
+    </symbol>
+    <symbol id="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="4,13 9,18 20,6"/>
+    </symbol>
+    <symbol id="ic-stamp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/><polyline points="8,12.5 11,15.5 16,9"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="hud">
+  <div class="hud-rank">
+    <span class="hud-rank-label">Rank</span>
+    <span class="hud-rank-name" id="rankName">Deckhand</span>
+  </div>
+  <div class="hud-gauge">
+    <div class="hud-gauge-track">
+      <div class="hud-gauge-fill" id="gaugeFill"></div>
+      <svg class="hud-gauge-ship" id="gaugeShip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-ship"/></svg>
+    </div>
+    <div class="hud-gauge-caption"><span id="gaugeLabel">Dock &mdash; 0 / 8 missions cleared</span><span id="gaugePct">0%</span></div>
+  </div>
+  <div class="hud-xp"><span id="xpValue">0</span> / 1350 XP</div>
+  <button class="hud-reset" id="resetBtn" type="button">Reset voyage</button>
+</header>
+
+<main>
+  <section class="hero">
+    <span class="eyebrow">A Harness Artifact Registry Quickstart &mdash; reimagined</span>
+    <h1>Docs shouldn&rsquo;t read like a <em>cargo manifest.</em></h1>
+    <p class="hero-sub">Attention spans are down, PDFs are long, and nobody finishes page 40. This is the same Artifact Registry quickstart &mdash; rebuilt as an 8-mission voyage you can finish, remember, and actually enjoy.</p>
+
+    <div class="compare">
+      <div class="compare-card old">
+        <span class="compare-tag">Old way</span>
+        <span class="compare-title">The 40-page PDF</span>
+        <div class="pdf-lines" aria-hidden="true">
+          <span style="width:92%"></span><span style="width:78%"></span><span style="width:85%"></span><span style="width:60%"></span><span style="width:70%"></span>
+        </div>
+        <div class="compare-stat">~22 min<small>Wall of text, one pass</small></div>
+      </div>
+      <div class="compare-vs">VS</div>
+      <div class="compare-card new">
+        <span class="compare-tag">New way</span>
+        <span class="compare-title">The Voyage</span>
+        <div class="quest-preview" aria-hidden="true">
+          <span class="quest-dot on"></span><span class="quest-dot on"></span><span class="quest-dot"></span><span class="quest-dot"></span><span class="quest-dot"></span><span class="quest-dot"></span><span class="quest-dot"></span><span class="quest-dot"></span>
+        </div>
+        <div class="compare-stat">~6 min<small>8 missions, click as you go</small></div>
+      </div>
+    </div>
+
+    <button class="start-btn" id="startBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-anchor"/></svg>
+      Cast off &mdash; start Mission 1
+    </button>
+  </section>
+
+  <section class="route" id="route" aria-label="Quickstart missions">
+    <div class="route-line" aria-hidden="true"></div>
+
+    <!-- LEVEL 1 -->
+    <article class="level-card" data-level="1" data-maxxp="150">
+      <div class="level-node"><svg><use href="#ic-crate"/></svg><div class="stamp"><svg><use href="#ic-stamp"/></svg></div></div>
+      <div class="level-body">
+        <div class="level-kicker"><span class="level-num">Mission 01 &middot; Cast Off</span><span class="level-xp-pill" data-xppill>0 / 150 XP</span></div>
+        <h3 class="level-title">Create your registry</h3>
+        <p class="level-brief">Every voyage starts with a vessel. In Harness, that's a <span class="inline-code">Registry</span> &mdash; created at the Account, Org, or Project scope from <span class="inline-code">Registries &rarr; + New Artifact Registry</span>. Pick a package format, name the registry, and choose who's allowed aboard.</p>
+        <div class="challenge">
+          <span class="challenge-label">Load your cargo &mdash; pick a format</span>
+          <div class="chip-row" data-group="format">
+            <button class="chip" type="button" data-action="award" data-level="1" data-key="fmt" data-xp="60">Docker</button>
+            <button class="chip" type="button" data-action="award" data-level="1" data-key="fmt" data-xp="60">Maven</button>
+            <button class="chip" type="button" data-action="award" data-level="1" data-key="fmt" data-xp="60">npm</button>
+            <button class="chip" type="button" data-action="award" data-level="1" data-key="fmt" data-xp="60">Helm</button>
+            <button class="chip" type="button" data-action="award" data-level="1" data-key="fmt" data-xp="60">Python</button>
+            <button class="chip" type="button" data-action="award" data-level="1" data-key="fmt" data-xp="60">NuGet</button>
+            <button class="chip" type="button" data-action="award" data-level="1" data-key="fmt" data-xp="60">Go</button>
+            <button class="chip" type="button" data-action="award" data-level="1" data-key="fmt" data-xp="60">RubyGems</button>
+            <button class="chip" type="button" data-action="award" data-level="1" data-key="fmt" data-xp="60">Terraform</button>
+            <button class="chip" type="button" data-action="award" data-level="1" data-key="fmt" data-xp="60">Alpine</button>
+            <button class="chip" type="button" data-action="award" data-level="1" data-key="fmt" data-xp="60">Generic</button>
+            <span class="chip more">+ 14 more formats</span>
+          </div>
+
+          <div class="field-row">
+            <span class="challenge-label" style="margin:0;">Name the vessel</span>
+          </div>
+          <div class="field-row">
+            <input class="name-input" id="regNameInput" type="text" placeholder="e.g. payments-service" autocomplete="off" spellcheck="false">
+            <span class="hint">lowercase letters, numbers, <code>_ . -</code> &middot; must start with a letter</span>
+          </div>
+
+          <div class="field-row" style="margin-top:16px;">
+            <span class="challenge-label" style="margin:0;">Set visibility</span>
+          </div>
+          <div class="toggle-row" data-group="visibility">
+            <button class="toggle-btn" type="button" data-action="award" data-level="1" data-key="vis" data-xp="45">Private</button>
+            <button class="toggle-btn" type="button" data-action="award" data-level="1" data-key="vis" data-xp="45">Public <span class="hint">(needs the public-access flag)</span></button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 2 -->
+    <article class="level-card" data-level="2" data-maxxp="150">
+      <div class="level-node"><svg><use href="#ic-key"/></svg><div class="stamp"><svg><use href="#ic-stamp"/></svg></div></div>
+      <div class="level-body">
+        <div class="level-kicker"><span class="level-num">Mission 02 &middot; Papers, Please</span><span class="level-xp-pill" data-xppill>0 / 150 XP</span></div>
+        <h3 class="level-title">Set up your client</h3>
+        <p class="level-brief">No papers, no port entry. Open your registry and choose <span class="inline-code">Set up client</span> &mdash; Harness hands you a ready-to-copy login command for your exact format. Auth runs on token-based credentials (PAT or service account), and tokens expire after 30 days.</p>
+        <div class="challenge">
+          <span class="challenge-label">Clear customs</span>
+          <div class="step-list">
+            <button class="step-btn" type="button" data-action="award" data-level="2" data-key="token" data-xp="50">
+              <span class="box"><svg><use href="#ic-check"/></svg></span>
+              <span>Generate a token<span class="step-detail">PAT or service account &middot; expires in 30 days</span></span>
+            </button>
+            <button class="step-btn" type="button" data-action="award" data-level="2" data-key="cli" data-xp="50" data-reveal="#loginPanel2">
+              <span class="box"><svg><use href="#ic-check"/></svg></span>
+              <span>Authenticate the CLI<span class="step-detail">Harness generates the exact login command for your format</span></span>
+            </button>
+            <button class="step-btn" type="button" data-action="award" data-level="2" data-key="confirm" data-xp="50">
+              <span class="box"><svg><use href="#ic-check"/></svg></span>
+              <span>Confirm the connection<span class="step-detail">Client shows &ldquo;Login Succeeded&rdquo;</span></span>
+            </button>
+          </div>
+          <div class="code-panel" id="loginPanel2" style="display:none;"><span class="muted">$</span> &lt;format&gt; login &lt;your-registry-url&gt; -u &lt;token&gt; <span class="muted">&nbsp;# Login Succeeded</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 3 -->
+    <article class="level-card" data-level="3" data-maxxp="150">
+      <div class="level-node"><svg><use href="#ic-up"/></svg><div class="stamp"><svg><use href="#ic-stamp"/></svg></div></div>
+      <div class="level-body">
+        <div class="level-kicker"><span class="level-num">Mission 03 &middot; Load the Cargo</span><span class="level-xp-pill" data-xppill>0 / 150 XP</span></div>
+        <h3 class="level-title">Push your first artifact</h3>
+        <p class="level-brief">With papers cleared, load the hold. Tag your build for the registry and push it &mdash; the standard pattern is the same CLI your team already uses, just pointed at your new Harness registry URL.</p>
+        <div class="challenge">
+          <span class="challenge-label">Push it</span>
+          <div class="code-panel">$ docker tag payments-service:1.0.0 &lt;registry-url&gt;/payments-service:1.0.0<br>$ docker push &lt;registry-url&gt;/payments-service:1.0.0</div>
+          <button class="toggle-btn" type="button" data-action="sim-push" data-level="3" data-key="stage" data-xp="75" data-target="#pushSim">Stage cargo</button>
+          <button class="toggle-btn" type="button" data-action="award" data-level="3" data-key="push" data-xp="75">Confirm push complete</button>
+          <div class="progress-sim" id="pushSim"><div class="progress-sim-fill"></div></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 4 -->
+    <article class="level-card" data-level="4" data-maxxp="150">
+      <div class="level-node"><svg><use href="#ic-down"/></svg><div class="stamp"><svg><use href="#ic-stamp"/></svg></div></div>
+      <div class="level-body">
+        <div class="level-kicker"><span class="level-num">Mission 04 &middot; Make the Delivery</span><span class="level-xp-pill" data-xppill>0 / 150 XP</span></div>
+        <h3 class="level-title">Pull your artifact</h3>
+        <p class="level-brief">A registry only matters if something downstream can retrieve what you shipped. Pull the artifact back down &mdash; from a laptop, a pipeline step, or a deploy target &mdash; using the same authenticated client.</p>
+        <div class="challenge">
+          <span class="challenge-label">Pull it</span>
+          <div class="code-panel">$ docker pull &lt;registry-url&gt;/payments-service:1.0.0</div>
+          <button class="toggle-btn" type="button" data-action="sim-push" data-level="4" data-key="request" data-xp="75" data-target="#pullSim">Request delivery</button>
+          <button class="toggle-btn" type="button" data-action="award" data-level="4" data-key="pull" data-xp="75">Confirm pull complete</button>
+          <div class="progress-sim" id="pullSim"><div class="progress-sim-fill"></div></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 5 -->
+    <article class="level-card" data-level="5" data-maxxp="200">
+      <div class="level-node"><svg><use href="#ic-anchor"/></svg><div class="stamp"><svg><use href="#ic-stamp"/></svg></div></div>
+      <div class="level-body">
+        <div class="level-kicker"><span class="level-num">Mission 05 &middot; Open Trade Routes</span><span class="level-xp-pill" data-xppill>0 / 200 XP</span></div>
+        <h3 class="level-title">Configure an upstream proxy</h3>
+        <p class="level-brief">An upstream proxy lets your registry automatically fetch and cache artifacts from an external source &mdash; Docker Hub, Maven Central, or a custom remote &mdash; the first time they're requested, then serve every request after from your own dock.</p>
+        <div class="challenge">
+          <span class="challenge-label">Flip each crate to see the payoff</span>
+          <div class="flip-grid">
+            <button class="flip-card" type="button" data-action="award" data-level="5" data-key="b1" data-xp="50">
+              <span class="front">RELIABILITY</span><span class="back">Cached artifacts stay available even if the upstream source goes down.</span>
+            </button>
+            <button class="flip-card" type="button" data-action="award" data-level="5" data-key="b2" data-xp="50">
+              <span class="front">PERFORMANCE</span><span class="back">Builds pull from your local cache instead of the open internet.</span>
+            </button>
+            <button class="flip-card" type="button" data-action="award" data-level="5" data-key="b3" data-xp="50">
+              <span class="front">CENTRALIZATION</span><span class="back">One managed location instead of scattered external repos.</span>
+            </button>
+            <button class="flip-card" type="button" data-action="award" data-level="5" data-key="b4" data-xp="50">
+              <span class="front">SECURITY</span><span class="back">Every cached package still passes through your org's access policy.</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 6 -->
+    <article class="level-card" data-level="6" data-maxxp="250">
+      <div class="level-node"><svg><use href="#ic-shield"/></svg><div class="stamp"><svg><use href="#ic-stamp"/></svg></div></div>
+      <div class="level-body">
+        <div class="level-kicker"><span class="level-num">Mission 06 &middot; Customs Checkpoint</span><span class="level-xp-pill" data-xppill>0 / 250 XP</span></div>
+        <h3 class="level-title">Run the Dependency Firewall</h3>
+        <p class="level-brief">Every package fetched through an upstream proxy is screened before it's cached &mdash; against CVSS thresholds, license policy, package age, OSS risk, and a malicious-package list refreshed every 4 hours. Each package clears customs as Passed, Warning, or Blocked.</p>
+        <div class="challenge">
+          <span class="challenge-label">Run inspection</span>
+          <div class="scan-grid">
+            <div class="scan-row">
+              <span class="scan-pkg">left-pad@1.3.0</span>
+              <button class="scan-btn" type="button" data-action="scan" data-level="6" data-key="s1" data-xp="84" data-verdict="passed" data-reason="No known CVEs, license compliant, actively maintained.">Run scan</button>
+            </div>
+            <div class="scan-row">
+              <span class="scan-pkg">legacy-parser@0.9.2</span>
+              <button class="scan-btn" type="button" data-action="scan" data-level="6" data-key="s2" data-xp="83" data-verdict="warning" data-reason="Package age exceeds policy threshold &mdash; unmaintained for 3+ years.">Run scan</button>
+            </div>
+            <div class="scan-row">
+              <span class="scan-pkg">crypto-miner-utils@2.1.0</span>
+              <button class="scan-btn" type="button" data-action="scan" data-level="6" data-key="s3" data-xp="83" data-verdict="blocked" data-reason="Flagged by the malicious-package feed. Requires an explicit exemption to use.">Run scan</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 7 -->
+    <article class="level-card" data-level="7" data-maxxp="200">
+      <div class="level-node"><svg><use href="#ic-bin"/></svg><div class="stamp"><svg><use href="#ic-stamp"/></svg></div></div>
+      <div class="level-body">
+        <div class="level-kicker"><span class="level-num">Mission 07 &middot; Clear the Warehouse</span><span class="level-xp-pill" data-xppill>0 / 200 XP</span></div>
+        <h3 class="level-title">Write a lifecycle rule</h3>
+        <p class="level-brief"><strong>Cleanup rules</strong> soft-delete artifacts matching your criteria, recoverable during a grace period. <strong>Retention rules</strong> are evaluated first and protect matching artifacts from any deletion. Combine criteria &mdash; every condition you pick must hold true (AND logic) for a cleanup to fire.</p>
+        <div class="challenge">
+          <span class="challenge-label">Build a cleanup rule</span>
+          <div class="chip-row" data-group="rule">
+            <button class="chip" type="button" data-action="rule" data-level="7" data-key="r1" data-xp="120" data-text="keeps only the last 5 versions">Keep last N versions</button>
+            <button class="chip" type="button" data-action="rule" data-level="7" data-key="r2" data-xp="50" data-text="is older than 90 days">Older than X days</button>
+            <button class="chip" type="button" data-action="rule" data-level="7" data-key="r3" data-xp="30" data-text="hasn't been downloaded in 30 days">Not downloaded in X days</button>
+          </div>
+          <div class="rule-sentence" id="ruleSentence">Pick at least one condition to build your rule.</div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 8 -->
+    <article class="level-card" data-level="8" data-maxxp="100">
+      <div class="level-node"><svg><use href="#ic-flare"/></svg><div class="stamp"><svg><use href="#ic-stamp"/></svg></div></div>
+      <div class="level-body">
+        <div class="level-kicker"><span class="level-num">Mission 08 &middot; Signal Flares</span><span class="level-xp-pill" data-xppill>0 / 100 XP</span></div>
+        <h3 class="level-title">Arm a webhook</h3>
+        <p class="level-brief">The last mile is telling the rest of your stack what just happened. Webhooks fire on events related to your artifacts &mdash; so a downstream system can react the moment something changes in the registry.</p>
+        <div class="challenge">
+          <span class="challenge-label">Arm the flare</span>
+          <div class="flare-switch">
+            <button class="switch" id="flareSwitch" type="button" role="switch" aria-checked="false" data-action="flare" data-level="8" data-key="arm" data-xp="100"><span class="knob"></span></button>
+            <span class="hint">Notify on registry events</span>
+          </div>
+          <div class="flare-events" id="flareEvents">
+            <span class="flare-event">Artifact pushed</span>
+            <span class="flare-event">Artifact deleted</span>
+            <span class="flare-event">Scan completed</span>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="finale" id="finale">
+    <div class="finale-inner">
+      <svg class="finale-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-trophy"/></svg>
+      <h2 id="finaleHeading">Full fleet clearance</h2>
+      <p id="finaleSub">Clear all 8 missions to earn your clearance stamp.</p>
+      <div class="finale-stats">
+        <div class="finale-stat"><b id="finaleXp">0</b><span>Total XP</span></div>
+        <div class="finale-stat"><b id="finaleMissions">0/8</b><span>Missions cleared</span></div>
+        <div class="finale-stat"><b id="finaleRank">Deckhand</b><span>Final rank</span></div>
+      </div>
+      <div class="finale-actions">
+        <button class="finale-btn primary" id="copyBtn" type="button">Copy my clearance summary</button>
+        <a class="finale-btn" href="https://developer.harness.io/docs/artifact-registry" target="_blank" rel="noopener">Open the real docs &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <p class="closing-note">8 missions &middot; ~6 interactive minutes &middot; 0 PDFs required &mdash; built from <a href="https://developer.harness.io/docs/artifact-registry" target="_blank" rel="noopener">developer.harness.io/docs/artifact-registry</a></p>
+</main>
+
+<div class="toast-region" id="toastRegion" aria-live="polite"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<script>
+(function(){
+  "use strict";
+  var LEVEL_MAX = {1:150,2:150,3:150,4:150,5:200,6:250,7:200,8:100};
+  var TOTAL_MAX = Object.values(LEVEL_MAX).reduce(function(a,b){return a+b;},0);
+  var RANKS = [
+    {min:0, name:"Deckhand"},
+    {min:150, name:"Loader"},
+    {min:400, name:"Dock Officer"},
+    {min:700, name:"Harbor Pilot"},
+    {min:1000, name:"Harbor Master"},
+    {min:1250, name:"Fleet Admiral"}
+  ];
+  var STORE_KEY = "artifact-voyage-progress-v1";
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var state = {awarded:{}, levelXp:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0}};
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(parsed && parsed.awarded && parsed.levelXp){ state = parsed; }
+      }
+    }catch(e){ /* storage unavailable — stay in-memory */ }
+  }
+  function saveState(){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){ /* ignore */ }
+  }
+
+  function totalXp(){
+    var t = 0;
+    for(var k in state.levelXp){ t += state.levelXp[k]; }
+    return t;
+  }
+  function rankFor(xp){
+    var r = RANKS[0];
+    for(var i=0;i<RANKS.length;i++){ if(xp >= RANKS[i].min) r = RANKS[i]; }
+    return r.name;
+  }
+  function clearedCount(){
+    var c = 0;
+    for(var k in state.levelXp){ if(state.levelXp[k] >= LEVEL_MAX[k]) c++; }
+    return c;
+  }
+
+  function renderAll(){
+    var xp = totalXp();
+    document.getElementById("xpValue").textContent = xp;
+    document.getElementById("rankName").textContent = rankFor(xp);
+    var pct = Math.min(100, Math.round((xp/TOTAL_MAX)*100));
+    document.getElementById("gaugeFill").style.width = pct + "%";
+    document.getElementById("gaugeShip").style.left = pct + "%";
+    document.getElementById("gaugePct").textContent = pct + "%";
+    document.getElementById("gaugeLabel").textContent = "Voyage — " + clearedCount() + " / 8 missions cleared";
+
+    document.querySelectorAll(".level-card").forEach(function(card){
+      var lvl = card.getAttribute("data-level");
+      var max = LEVEL_MAX[lvl];
+      var cur = state.levelXp[lvl] || 0;
+      var pill = card.querySelector("[data-xppill]");
+      if(pill) pill.textContent = cur + " / " + max + " XP";
+      card.classList.toggle("cleared", cur >= max);
+    });
+
+    // restore chip/step visual states from awarded keys
+    document.querySelectorAll("[data-action]").forEach(function(el){
+      var lvl = el.getAttribute("data-level"), key = el.getAttribute("data-key");
+      if(!lvl || !key) return;
+      var id = lvl + ":" + key;
+      var isDone = !!state.awarded[id];
+      if(el.classList.contains("chip")) el.classList.toggle("done", isDone);
+      if(el.classList.contains("toggle-btn")) el.classList.toggle("done", isDone);
+      if(el.classList.contains("step-btn")) el.classList.toggle("done", isDone);
+      if(el.classList.contains("flip-card")) el.classList.toggle("flipped", isDone);
+      if(el.classList.contains("switch")){ el.classList.toggle("on", isDone); el.setAttribute("aria-checked", isDone ? "true":"false"); }
+    });
+    if(state.awarded["2:cli"]){ var lp = document.getElementById("loginPanel2"); if(lp) lp.style.display = "block"; }
+    if(state.awarded["8:arm"]){ lightFlares(); }
+    document.querySelectorAll('.scan-row').forEach(function(row){
+      var btn = row.querySelector('[data-action="scan"]');
+      if(btn){
+        var lvl = btn.getAttribute("data-level"), key = btn.getAttribute("data-key");
+        if(state.awarded[lvl+":"+key]) showVerdict(btn, row);
+      }
+    });
+    rebuildRuleSentence();
+
+    var mc = clearedCount();
+    document.getElementById("finaleXp").textContent = xp;
+    document.getElementById("finaleMissions").textContent = mc + "/8";
+    document.getElementById("finaleRank").textContent = rankFor(xp);
+    var finale = document.getElementById("finale");
+    if(mc >= 8){
+      document.getElementById("finaleHeading").textContent = "Full fleet clearance — earned";
+      document.getElementById("finaleSub").textContent = "All 8 missions cleared. The Artifact Registry voyage is complete.";
+      finale.style.borderColor = "var(--signal)";
+    } else {
+      document.getElementById("finaleHeading").textContent = "Full fleet clearance";
+      document.getElementById("finaleSub").textContent = "Clear all 8 missions to earn your clearance stamp.";
+    }
+  }
+
+  function toast(msg, xp){
+    var region = document.getElementById("toastRegion");
+    var t = document.createElement("div");
+    t.className = "toast";
+    t.innerHTML = msg + (xp ? '  <b>+' + xp + ' XP</b>' : '');
+    region.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 2400);
+  }
+
+  function confettiBurst(x, y){
+    if(reduceMotion) return;
+    var canvas = document.getElementById("confetti-canvas");
+    var dpr = window.devicePixelRatio || 1;
+    if(canvas.width !== window.innerWidth*dpr){
+      canvas.width = window.innerWidth*dpr; canvas.height = window.innerHeight*dpr;
+    }
+    var ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var colors = ["#EF6C2E","#E8A317","#0E7C8C","#2E8F58"];
+    var particles = [];
+    for(var i=0;i<22;i++){
+      particles.push({
+        x:x, y:y,
+        vx:(Math.random()-0.5)*7,
+        vy:-Math.random()*6-2,
+        rot:Math.random()*Math.PI,
+        vr:(Math.random()-0.5)*0.3,
+        w:5+Math.random()*4, h:3+Math.random()*3,
+        color:colors[i%colors.length],
+        life:1
+      });
+    }
+    var start = null;
+    function frame(ts){
+      if(!start) start = ts;
+      var dt = 0.6;
+      ctx.clearRect(0,0,canvas.width/dpr, canvas.height/dpr);
+      var alive = false;
+      particles.forEach(function(p){
+        p.vy += 0.25*dt;
+        p.x += p.vx*dt; p.y += p.vy*dt; p.rot += p.vr*dt;
+        p.life -= 0.016*dt;
+        if(p.life > 0){
+          alive = true;
+          ctx.save();
+          ctx.globalAlpha = Math.max(p.life,0);
+          ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+          ctx.restore();
+        }
+      });
+      if(alive) requestAnimationFrame(frame);
+      else ctx.clearRect(0,0,canvas.width/dpr, canvas.height/dpr);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function award(el, lvl, key, xp, label){
+    var id = lvl + ":" + key;
+    if(state.awarded[id]) return false;
+    state.awarded[id] = true;
+    state.levelXp[lvl] = Math.min(LEVEL_MAX[lvl], (state.levelXp[lvl]||0) + xp);
+    var rect = el.getBoundingClientRect();
+    confettiBurst(rect.left + rect.width/2, rect.top + rect.height/2);
+    toast(label || "Nice.", xp);
+    saveState();
+    renderAll();
+    var card = el.closest(".level-card");
+    if(card && card.classList.contains("cleared")){
+      setTimeout(function(){ toast("Mission " + lvl + " cleared —"); }, 350);
+    }
+    return true;
+  }
+
+  function lightFlares(){
+    document.querySelectorAll(".flare-event").forEach(function(ev, i){
+      setTimeout(function(){ ev.classList.add("lit"); }, i*220);
+    });
+  }
+
+  function showVerdict(btn, row){
+    var verdict = btn.getAttribute("data-verdict");
+    var reason = btn.getAttribute("data-reason");
+    if(row.querySelector(".scan-verdict")) return;
+    var badge = document.createElement("span");
+    badge.className = "scan-verdict " + verdict;
+    badge.textContent = verdict;
+    btn.replaceWith(badge);
+    var reasonEl = document.createElement("span");
+    reasonEl.className = "scan-reason";
+    reasonEl.innerHTML = reason;
+    row.appendChild(reasonEl);
+  }
+
+  function rebuildRuleSentence(){
+    var texts = [];
+    ["r1","r2","r3"].forEach(function(k){
+      if(state.awarded["7:"+k]){
+        var chip = document.querySelector('[data-level="7"][data-key="'+k+'"]');
+        if(chip) texts.push(chip.getAttribute("data-text"));
+      }
+    });
+    var box = document.getElementById("ruleSentence");
+    if(!box) return;
+    if(texts.length === 0){ box.innerHTML = "Pick at least one condition to build your rule."; return; }
+    box.innerHTML = "Delete any artifact version that <b>" + texts.join("</b> AND <b>") + "</b>.";
+  }
+
+  document.addEventListener("click", function(e){
+    var el = e.target.closest("[data-action]");
+    if(!el) return;
+    var action = el.getAttribute("data-action");
+    var lvl = el.getAttribute("data-level");
+    var key = el.getAttribute("data-key");
+    var xp = parseInt(el.getAttribute("data-xp") || "0", 10);
+
+    if(action === "award"){
+      award(el, lvl, key, xp, el.textContent.trim().split("(")[0].trim());
+    } else if(action === "sim-push"){
+      var target = document.querySelector(el.getAttribute("data-target"));
+      var ok = award(el, lvl, key, xp, "Loading...");
+      if(target){
+        var fill = target.querySelector(".progress-sim-fill");
+        fill.style.width = "0%";
+        requestAnimationFrame(function(){ fill.style.width = "100%"; });
+      }
+    } else if(action === "scan"){
+      // award() triggers renderAll(), whose restore pass swaps this row's
+      // button for a verdict badge — no extra DOM work needed here.
+      award(el, lvl, key, xp, "Scan complete —");
+    } else if(action === "rule"){
+      award(el, lvl, key, xp, "Rule updated —");
+      rebuildRuleSentence();
+    } else if(action === "flare"){
+      var wasOn = el.classList.contains("on");
+      if(!wasOn){
+        award(el, lvl, key, xp, "Flare armed —");
+        lightFlares();
+      }
+    }
+  });
+
+  document.getElementById("regNameInput").addEventListener("input", function(){
+    var v = this.value;
+    var valid = /^[a-z][a-z0-9._-]*$/.test(v) && v.length > 1;
+    this.classList.toggle("valid", valid);
+    if(valid) award(this, "1", "name", 45, "Vessel named —");
+  });
+
+  document.getElementById("startBtn").addEventListener("click", function(){
+    document.getElementById("route").scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block:"start"});
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    if(!confirm("Reset the whole voyage back to Deckhand?")) return;
+    state = {awarded:{}, levelXp:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0}};
+    saveState();
+    document.getElementById("regNameInput").value = "";
+    document.getElementById("regNameInput").classList.remove("valid");
+    document.querySelectorAll(".scan-row").forEach(function(row){
+      row.innerHTML = row.innerHTML; // no-op guard
+    });
+    location.reload();
+  });
+
+  document.getElementById("copyBtn").addEventListener("click", function(){
+    var xp = totalXp(), mc = clearedCount(), rank = rankFor(xp);
+    var summary = "Artifact Voyage clearance — " + mc + "/8 missions, " + xp + " XP, rank: " + rank + ".";
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(summary).then(function(){
+        toast("Summary copied to clipboard");
+      }).catch(function(){ toast(summary); });
+    } else {
+      toast(summary);
+    }
+  });
+
+  loadState();
+  renderAll();
+})();
+</script>
+</body>
+</html>

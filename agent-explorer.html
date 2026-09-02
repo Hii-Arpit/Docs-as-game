@@ -1,0 +1,243 @@
+<title>Harness Agent Explorer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* Tailwind's play CDN needs a beat to inject its stylesheet; avoid a
+     flash of unstyled content on first paint. */
+  body { background: #f8fafc; }
+</style>
+
+<div class="min-h-screen bg-slate-50 text-slate-900">
+  <div class="max-w-6xl mx-auto px-4 py-4">
+    <!-- Header -->
+    <header class="mb-3 flex items-baseline gap-2 flex-wrap">
+      <h1 class="text-lg font-bold">Your harness for the Autonomous SDLC</h1>
+      <p class="text-[11px] text-slate-500">
+        Four Agents, one shared platform. Pick an Agent below.
+      </p>
+    </header>
+
+    <!-- 1. Agents: picker + selected Agent's modules -->
+    <main class="mb-3">
+      <div id="agentTabs" class="flex flex-wrap gap-2 mb-3"></div>
+
+      <section class="rounded-xl border border-slate-200 bg-white p-3">
+        <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+          <div>
+            <h2 id="agentName" class="text-sm font-bold leading-tight"></h2>
+            <p id="agentMeta" class="text-[11px] text-slate-500 leading-tight"></p>
+          </div>
+          <a
+            id="agentVisit"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1 text-[11px] font-medium rounded-full px-2.5 py-1 text-white shrink-0"
+          >
+            Visit Agent page
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+
+        <div id="agentTiles" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5"></div>
+      </section>
+    </main>
+
+    <!-- 2. Foundation band: Harness Platform -->
+    <section class="mb-3 rounded-xl border border-slate-200 bg-white p-3">
+      <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+        <div>
+          <h2 class="text-sm font-bold leading-tight">Harness Platform</h2>
+          <p class="text-[11px] text-slate-500 leading-tight">
+            The shared infrastructure underneath all four Agents
+          </p>
+        </div>
+        <a
+          href="https://www.harness.io/products/platform"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1 text-[11px] font-medium rounded-full px-2.5 py-1 text-white shrink-0"
+          style="background-color:#475569"
+        >
+          Visit Platform page
+          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+      </div>
+      <div id="platformTiles" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5"></div>
+    </section>
+
+    <!-- 3. More from Harness: Strategic Bets -->
+    <section class="rounded-xl border border-slate-200 bg-white p-3">
+      <h2 class="text-sm font-bold leading-tight">More from Harness</h2>
+      <p class="text-[11px] text-slate-500 leading-tight mb-2">
+        Additional capabilities on the same platform — no sales
+        conversation required.
+      </p>
+      <div id="betsTiles" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+  // -------------------------------------------------------------------------
+  // Data: the four Agents and their capabilities
+  // -------------------------------------------------------------------------
+  const AGENTS = [
+    {
+      id: "software-delivery",
+      name: "Software Delivery Agent",
+      buyer: "DevOps / Platform Engineering",
+      outcome: "Move changes safely to production",
+      href: "https://www.harness.io/products/software-delivery-agent",
+      accent: "#3B82F6",
+      modules: [
+        { name: "Continuous Delivery", note: "Code Deployments", href: "https://developer.harness.io/docs/continuous-delivery" },
+        { name: "Continuous Integration", note: "Builds (incl. AI Test Automation)", href: "https://developer.harness.io/docs/continuous-integration" },
+        { name: "Infrastructure as Code Management", note: "Infrastructure Deployments", href: "https://developer.harness.io/docs/infrastructure-as-code-management" },
+        { name: "Database DevOps", note: "Database Deployments", href: "https://developer.harness.io/docs/database-devops" },
+        { name: "Artifact Registry", note: "Artifacts", href: "https://developer.harness.io/docs/artifact-registry" },
+        { name: "Code Repository", note: "Code Repositories", href: "https://developer.harness.io/docs/code-repository" },
+        { name: "AI Code Review", note: "Code Reviews", href: "https://developer.harness.io/docs/ai-code-review" },
+      ],
+    },
+    {
+      id: "security-testing",
+      name: "Security Testing Agent",
+      buyer: "DevSecOps / AppSec",
+      outcome: "Find and fix risk before production",
+      href: "https://www.harness.io/products/security-testing-agent",
+      accent: "#8B5CF6",
+      modules: [
+        { name: "Security Testing Orchestration", note: null, href: "https://developer.harness.io/docs/security-testing-orchestration" },
+        { name: "Supply Chain Security", note: null, href: "https://developer.harness.io/docs/software-supply-chain-assurance" },
+        { name: "SAST & SCA", note: "Static Application Security Testing + Software Composition Analysis — one doc section on the doc site", href: "https://developer.harness.io/docs/sast-and-sca" },
+        { name: "Hardened Images", note: "coming soon — no doc page yet", href: null },
+      ],
+    },
+    {
+      id: "runtime-protection",
+      name: "Runtime Protection Agent",
+      buyer: "CISO / Security",
+      outcome: "Protect applications, APIs, and AI in production",
+      href: "https://www.harness.io/products/runtime-protection-agent",
+      accent: "#78716C",
+      modules: [
+        { name: "API Posture Management", note: "API & Application Discovery on the doc site", href: "https://developer.harness.io/docs/appsec-discovery" },
+        { name: "API Advanced Protection", note: "Application & API Runtime Protection on the doc site", href: "https://developer.harness.io/docs/appsec-runtime-protection" },
+        { name: "AI Security", note: "AI Posture + AI Firewall — one doc section on the doc site", href: "https://developer.harness.io/docs/ai-security" },
+      ],
+    },
+    {
+      id: "cost-management",
+      name: "Cost Management Agent",
+      buyer: "FinOps",
+      outcome: "Control and optimize cloud and AI costs",
+      href: "https://www.harness.io/products/cost-management-agent",
+      accent: "#10B981",
+      modules: [
+        { name: "Cloud & AI Cost Management", note: "Cloud Costs + AI Costs", href: "https://developer.harness.io/docs/cloud-cost-management" },
+        { name: "AI DLC Insights", note: "Engineering Efficiency", href: "https://developer.harness.io/docs/ai-dlc-insights" },
+      ],
+    },
+  ];
+
+  // -------------------------------------------------------------------------
+  // Data: Strategic Bets — outside the four core Agents, product-led growth
+  // -------------------------------------------------------------------------
+  const STRATEGIC_BETS = [
+    { name: "AI SRE", note: "Incidents", href: "https://developer.harness.io/docs/ai-sre" },
+    { name: "AI Evals", note: "no doc page published yet", href: null },
+    { name: "Internal Developer Portal", note: null, href: "https://developer.harness.io/docs/internal-developer-portal" },
+    { name: "Feature Management & Experimentation", note: "Runtime Configuration", href: "https://developer.harness.io/docs/feature-management-experimentation" },
+    { name: "Resilience Testing", note: "Chaos Engineering", href: "https://developer.harness.io/docs/resilience-testing" },
+  ];
+
+  // -------------------------------------------------------------------------
+  // Data: Harness Platform capabilities
+  // -------------------------------------------------------------------------
+  const PLATFORM_TILES = [
+    { name: "Pipelines", note: "Delivery workflow execution engine", href: "https://developer.harness.io/docs/category/pipelines" },
+    { name: "Governance", note: "Policy-as-code (OPA), RBAC, audit trails", href: "https://developer.harness.io/docs/platform/governance/policy-as-code/harness-governance-overview/" },
+    { name: "Knowledge Graph", note: "Shared context across the SDLC", href: "https://developer.harness.io/docs/category/knowledge-graph" },
+    { name: "Worker Agents", note: "Execute work through governed workflows", href: "https://developer.harness.io/docs/platform/harness-ai/core-capabilities/in-your-pipelines/worker-agent/" },
+    { name: "CLI", note: "Command-line access to the platform", href: "https://developer.harness.io/docs/platform/harness-cli/harness-cli-overview/" },
+    { name: "AgentTrace", note: "no doc page published yet — see the AgentTrace blog post", href: null },
+    { name: "DevOps Data", note: "Dashboards and analytics", href: "https://developer.harness.io/docs/platform/dashboards/dashboards-overview/" },
+  ];
+
+  const EXT_ICON =
+    '<svg class="w-3 h-3 text-slate-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+
+  // Always render the note line, even when a module has none, so every
+  // tile reserves the same vertical space and tiles in a row line up
+  // exactly instead of the shorter tiles sitting shorter than the rest.
+  function moduleCardHtml(module) {
+    const disabled = !module.href;
+    const noteHtml = module.note ?? "&nbsp;";
+    const shared = "h-full flex flex-col justify-between rounded-lg border p-2";
+
+    if (disabled) {
+      return `<div class="${shared} border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed" title="Doc page not published yet">
+        <div class="flex items-start justify-between gap-1.5">
+          <span class="font-medium text-slate-800 text-xs leading-tight">${module.name}</span>
+        </div>
+        <p class="mt-0.5 text-[11px] leading-snug text-slate-500">${noteHtml}</p>
+      </div>`;
+    }
+
+    return `<a href="${module.href}" target="_blank" rel="noopener noreferrer"
+      class="${shared} border-slate-200 bg-white transition hover:border-slate-300 hover:shadow-sm">
+      <div class="flex items-start justify-between gap-1.5">
+        <span class="font-medium text-slate-800 text-xs leading-tight">${module.name}</span>
+        ${EXT_ICON}
+      </div>
+      <p class="mt-0.5 text-[11px] leading-snug text-slate-500">${noteHtml}</p>
+    </a>`;
+  }
+
+  function agentTabHtml(agent, isSelected) {
+    const baseClass =
+      "flex-1 min-w-[140px] text-left rounded-xl border p-2.5 transition";
+    const stateClass = isSelected
+      ? "border-transparent shadow text-white"
+      : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm text-slate-800";
+    const style = isSelected ? `background-color:${agent.accent}` : "";
+    const barColor = isSelected ? "rgba(255,255,255,0.7)" : agent.accent;
+    const buyerClass = isSelected ? "text-white/80" : "text-slate-500";
+
+    return `<button type="button" data-id="${agent.id}" aria-pressed="${isSelected}"
+      class="${baseClass} ${stateClass}" style="${style}">
+      <div class="h-1 w-6 rounded-full mb-1.5" style="background-color:${barColor}"></div>
+      <div class="font-semibold leading-tight text-sm">${agent.name}</div>
+      <div class="text-[11px] mt-0.5 ${buyerClass}">${agent.buyer}</div>
+    </button>`;
+  }
+
+  let selectedId = AGENTS[0].id;
+
+  function renderTabs() {
+    document.getElementById("agentTabs").innerHTML = AGENTS
+      .map((a) => agentTabHtml(a, a.id === selectedId))
+      .join("");
+    document.querySelectorAll("#agentTabs button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedId = btn.dataset.id;
+        renderTabs();
+        renderAgentDetail();
+      });
+    });
+  }
+
+  function renderAgentDetail() {
+    const agent = AGENTS.find((a) => a.id === selectedId) ?? AGENTS[0];
+    document.getElementById("agentName").textContent = agent.name;
+    document.getElementById("agentMeta").textContent = `${agent.outcome} · ${agent.buyer}`;
+    const visit = document.getElementById("agentVisit");
+    visit.href = agent.href;
+    visit.style.backgroundColor = agent.accent;
+    document.getElementById("agentTiles").innerHTML = agent.modules.map(moduleCardHtml).join("");
+  }
+
+  renderTabs();
+  renderAgentDetail();
+  document.getElementById("platformTiles").innerHTML = PLATFORM_TILES.map(moduleCardHtml).join("");
+  document.getElementById("betsTiles").innerHTML = STRATEGIC_BETS.map(moduleCardHtml).join("");
+</script>
