@@ -319,6 +319,22 @@
   }
   .closing-note a{color:var(--violet-deep); text-decoration:underline; font-weight:600;}
 
+  /* ---------- signup cta ---------- */
+  .signup-cta{
+    margin-top:24px; text-align:center; background:var(--emerald); color:#fff;
+    border-radius:28px; padding:38px 26px; position:relative; overflow:hidden;
+  }
+  .signup-cta-icon{width:42px; height:42px; margin:0 auto 12px; color:#fff;}
+  .signup-cta h3{font-family:var(--font-display); font-size:clamp(21px,3.2vw,27px); font-weight:800; color:#fff;}
+  .signup-cta p{color:rgba(255,255,255,0.86); max-width:46ch; margin:10px auto 0; font-size:14.5px;}
+  .signup-btn{
+    margin-top:22px; display:inline-flex; align-items:center; gap:9px; font-family:var(--font-display); font-weight:700; font-size:15.5px;
+    background:#fff; color:var(--emerald-deep); border:none; border-radius:999px;
+    padding:14px 28px; cursor:pointer; text-decoration:none; box-shadow:var(--shadow-lg);
+  }
+  .signup-btn:hover{background:var(--amber); color:#3d2a05;}
+  .signup-btn svg{width:17px; height:17px;}
+
   @media (max-width:520px){
     .compare{grid-template-columns:1fr;}
     .arrow-btn{display:none;}
@@ -371,6 +387,9 @@
     </symbol>
     <symbol id="ic-coin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="17"/><path d="M9,9 q3,-1.6 6,0 M9,15 q3,1.6 6,0"/>
+    </symbol>
+    <symbol id="ic-launch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="7,17 17,7"/><polyline points="10,7 17,7 17,14"/>
     </symbol>
   </defs>
 </svg>
@@ -704,6 +723,16 @@
       <button class="finale-btn primary" id="copyBtn" type="button">Copy my score</button>
       <a class="finale-btn" href="https://developer.harness.io/docs/cloud-cost-management/get-started/overview/" target="_blank" rel="noopener">Open the real docs &rarr;</a>
     </div>
+  </section>
+
+  <section class="signup-cta">
+    <svg class="signup-cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-launch"/></svg>
+    <h3>Turn this score into a real one.</h3>
+    <p>Harness Cloud Cost Management is free to start &mdash; connect a cloud account and get your first Perspective, Budget, and Recommendation running today.</p>
+    <a class="signup-btn" href="https://app.harness.io/auth/?_gl=1*1hscgkg*_gcl_au*MTg3NjgyODc4MC4xNzg4MzE2Nzk5*_ga*MTA5ODIxMjQwOS4xNzg4MzE2Nzk5*_ga_46758J5H8P*czE3ODgzMTY3OTgkbzEkZzEkdDE3ODgzMTY4MTAkajQ4JGwwJGgw#/signup?utm_source=harness_io&amp;utm_medium=cta&amp;utm_campaign=platform" target="_blank" rel="noopener">
+      Get Started for Free
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-launch"/></svg>
+    </a>
   </section>
 
   <p class="closing-note">8 missions &middot; ~7 interactive minutes &middot; Inform &rarr; Optimize &rarr; Operate &mdash; built from <a href="https://developer.harness.io/docs/cloud-cost-management/get-started/overview/" target="_blank" rel="noopener">developer.harness.io/docs/cloud-cost-management</a></p>

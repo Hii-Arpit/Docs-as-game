@@ -218,7 +218,6 @@
   .challenge{border-top:1.5px dashed var(--line-strong); padding-top:16px;}
   .challenge-label{font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--cargo-deep); margin-bottom:10px; display:block;}
 
-  /* chip / choice buttons (generic award targets) */
   .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
   .chip{
     font-family:var(--font-mono); font-size:12.5px; padding:7px 12px; border-radius:8px;
@@ -353,6 +352,27 @@
   }
   .closing-note a{color:var(--sea-deep); text-decoration:underline;}
 
+  /* ---------- signup cta ---------- */
+  .signup-cta{
+    margin-top:22px; text-align:center; background:var(--moss); color:var(--card);
+    border:2px solid var(--ink); border-radius:14px; padding:36px 28px; position:relative; overflow:hidden;
+  }
+  .signup-cta::before{
+    content:""; position:absolute; inset:0;
+    background:repeating-linear-gradient(135deg, color-mix(in srgb, var(--card) 10%, transparent) 0 16px, transparent 16px 32px);
+  }
+  .signup-cta-inner{position:relative;}
+  .signup-cta-icon{width:42px; height:42px; margin:0 auto 12px; color:var(--card);}
+  .signup-cta h3{font-family:var(--font-display); font-size:clamp(21px,3.2vw,28px); font-weight:900; color:var(--card);}
+  .signup-cta p{color:color-mix(in srgb, var(--card) 84%, transparent); max-width:48ch; margin:10px auto 0; font-size:14.5px;}
+  .signup-btn{
+    margin-top:20px; display:inline-flex; align-items:center; gap:9px; font-family:var(--font-display); font-weight:800; font-size:17px;
+    background:var(--card); color:var(--ink); border:2px solid var(--ink); border-radius:10px;
+    padding:13px 26px; cursor:pointer; text-decoration:none; box-shadow:var(--shadow);
+  }
+  .signup-btn:hover{transform:translateY(-1px); background:var(--signal); border-color:var(--signal); color:var(--signal-ink);}
+  .signup-btn svg{width:18px; height:18px;}
+
   @media (max-width:560px){
     .compare{grid-template-columns:1fr; }
     .compare-vs{display:none;}
@@ -407,6 +427,9 @@
     </symbol>
     <symbol id="ic-stamp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="9"/><polyline points="8,12.5 11,15.5 16,9"/>
+    </symbol>
+    <symbol id="ic-launch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="7,17 17,7"/><polyline points="10,7 17,7 17,14"/>
     </symbol>
   </defs>
 </svg>
@@ -485,7 +508,6 @@
             <button class="chip" type="button" data-action="award" data-level="1" data-key="fmt" data-xp="60">Generic</button>
             <span class="chip more">+ 14 more formats</span>
           </div>
-
           <div class="field-row">
             <span class="challenge-label" style="margin:0;">Name the vessel</span>
           </div>
@@ -493,7 +515,6 @@
             <input class="name-input" id="regNameInput" type="text" placeholder="e.g. payments-service" autocomplete="off" spellcheck="false">
             <span class="hint">lowercase letters, numbers, <code>_ . -</code> &middot; must start with a letter</span>
           </div>
-
           <div class="field-row" style="margin-top:16px;">
             <span class="challenge-label" style="margin:0;">Set visibility</span>
           </div>
@@ -680,6 +701,18 @@
     </div>
   </section>
 
+  <section class="signup-cta">
+    <div class="signup-cta-inner">
+      <svg class="signup-cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-launch"/></svg>
+      <h3>Ready to set sail for real?</h3>
+      <p>Harness Artifact Registry is free to start &mdash; create your first registry and push a real artifact in minutes, no credit card required.</p>
+      <a class="signup-btn" href="https://app.harness.io/auth/?_gl=1*1hscgkg*_gcl_au*MTg3NjgyODc4MC4xNzg4MzE2Nzk5*_ga*MTA5ODIxMjQwOS4xNzg4MzE2Nzk5*_ga_46758J5H8P*czE3ODgzMTY3OTgkbzEkZzEkdDE3ODgzMTY4MTAkajQ4JGwwJGgw#/signup?utm_source=harness_io&amp;utm_medium=cta&amp;utm_campaign=platform" target="_blank" rel="noopener">
+        Get Started for Free
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-launch"/></svg>
+      </a>
+    </div>
+  </section>
+
   <p class="closing-note">8 missions &middot; ~6 interactive minutes &middot; 0 PDFs required &mdash; built from <a href="https://developer.harness.io/docs/artifact-registry" target="_blank" rel="noopener">developer.harness.io/docs/artifact-registry</a></p>
 </main>
 
@@ -711,265 +744,178 @@
         var parsed = JSON.parse(raw);
         if(parsed && parsed.awarded && parsed.levelXp){ state = parsed; }
       }
-    }catch(e){ /* storage unavailable — stay in-memory */ }
+    }catch(e){}
   }
   function saveState(){
-    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){ /* ignore */ }
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){}
   }
 
-  function totalXp(){
-    var t = 0;
-    for(var k in state.levelXp){ t += state.levelXp[k]; }
-    return t;
-  }
-  function rankFor(xp){
-    var r = RANKS[0];
-    for(var i=0;i<RANKS.length;i++){ if(xp >= RANKS[i].min) r = RANKS[i]; }
-    return r.name;
-  }
-  function clearedCount(){
-    var c = 0;
-    for(var k in state.levelXp){ if(state.levelXp[k] >= LEVEL_MAX[k]) c++; }
-    return c;
-  }
+  function totalXp(){ var t=0; for(var k in state.levelXp){ t += state.levelXp[k]; } return t; }
+  function rankFor(xp){ var r=RANKS[0]; for(var i=0;i<RANKS.length;i++){ if(xp>=RANKS[i].min) r=RANKS[i]; } return r.name; }
+  function clearedCount(){ var c=0; for(var k in state.levelXp){ if(state.levelXp[k]>=LEVEL_MAX[k]) c++; } return c; }
 
   function renderAll(){
-    var xp = totalXp();
-    document.getElementById("xpValue").textContent = xp;
-    document.getElementById("rankName").textContent = rankFor(xp);
-    var pct = Math.min(100, Math.round((xp/TOTAL_MAX)*100));
-    document.getElementById("gaugeFill").style.width = pct + "%";
-    document.getElementById("gaugeShip").style.left = pct + "%";
-    document.getElementById("gaugePct").textContent = pct + "%";
-    document.getElementById("gaugeLabel").textContent = "Voyage — " + clearedCount() + " / 8 missions cleared";
+    var xp=totalXp();
+    document.getElementById("xpValue").textContent=xp;
+    document.getElementById("rankName").textContent=rankFor(xp);
+    var pct=Math.min(100,Math.round((xp/TOTAL_MAX)*100));
+    document.getElementById("gaugeFill").style.width=pct+"%";
+    document.getElementById("gaugeShip").style.left=pct+"%";
+    document.getElementById("gaugePct").textContent=pct+"%";
+    document.getElementById("gaugeLabel").textContent="Voyage — "+clearedCount()+" / 8 missions cleared";
 
     document.querySelectorAll(".level-card").forEach(function(card){
-      var lvl = card.getAttribute("data-level");
-      var max = LEVEL_MAX[lvl];
-      var cur = state.levelXp[lvl] || 0;
-      var pill = card.querySelector("[data-xppill]");
-      if(pill) pill.textContent = cur + " / " + max + " XP";
-      card.classList.toggle("cleared", cur >= max);
+      var lvl=card.getAttribute("data-level");
+      var max=LEVEL_MAX[lvl]; var cur=state.levelXp[lvl]||0;
+      var pill=card.querySelector("[data-xppill]");
+      if(pill) pill.textContent=cur+" / "+max+" XP";
+      card.classList.toggle("cleared",cur>=max);
     });
 
-    // restore chip/step visual states from awarded keys
     document.querySelectorAll("[data-action]").forEach(function(el){
-      var lvl = el.getAttribute("data-level"), key = el.getAttribute("data-key");
-      if(!lvl || !key) return;
-      var id = lvl + ":" + key;
-      var isDone = !!state.awarded[id];
-      if(el.classList.contains("chip")) el.classList.toggle("done", isDone);
-      if(el.classList.contains("toggle-btn")) el.classList.toggle("done", isDone);
-      if(el.classList.contains("step-btn")) el.classList.toggle("done", isDone);
-      if(el.classList.contains("flip-card")) el.classList.toggle("flipped", isDone);
-      if(el.classList.contains("switch")){ el.classList.toggle("on", isDone); el.setAttribute("aria-checked", isDone ? "true":"false"); }
+      var lvl=el.getAttribute("data-level"), key=el.getAttribute("data-key");
+      if(!lvl||!key) return;
+      var id=lvl+":"+key; var isDone=!!state.awarded[id];
+      if(el.classList.contains("chip")) el.classList.toggle("done",isDone);
+      if(el.classList.contains("toggle-btn")) el.classList.toggle("done",isDone);
+      if(el.classList.contains("step-btn")) el.classList.toggle("done",isDone);
+      if(el.classList.contains("flip-card")) el.classList.toggle("flipped",isDone);
+      if(el.classList.contains("switch")){ el.classList.toggle("on",isDone); el.setAttribute("aria-checked",isDone?"true":"false"); }
     });
-    if(state.awarded["2:cli"]){ var lp = document.getElementById("loginPanel2"); if(lp) lp.style.display = "block"; }
+    if(state.awarded["2:cli"]){ var lp=document.getElementById("loginPanel2"); if(lp) lp.style.display="block"; }
     if(state.awarded["8:arm"]){ lightFlares(); }
     document.querySelectorAll('.scan-row').forEach(function(row){
-      var btn = row.querySelector('[data-action="scan"]');
-      if(btn){
-        var lvl = btn.getAttribute("data-level"), key = btn.getAttribute("data-key");
-        if(state.awarded[lvl+":"+key]) showVerdict(btn, row);
-      }
+      var btn=row.querySelector('[data-action="scan"]');
+      if(btn){ var lvl=btn.getAttribute("data-level"), key=btn.getAttribute("data-key"); if(state.awarded[lvl+":"+key]) showVerdict(btn,row); }
     });
     rebuildRuleSentence();
 
-    var mc = clearedCount();
-    document.getElementById("finaleXp").textContent = xp;
-    document.getElementById("finaleMissions").textContent = mc + "/8";
-    document.getElementById("finaleRank").textContent = rankFor(xp);
-    var finale = document.getElementById("finale");
-    if(mc >= 8){
-      document.getElementById("finaleHeading").textContent = "Full fleet clearance — earned";
-      document.getElementById("finaleSub").textContent = "All 8 missions cleared. The Artifact Registry voyage is complete.";
-      finale.style.borderColor = "var(--signal)";
+    var mc=clearedCount();
+    document.getElementById("finaleXp").textContent=xp;
+    document.getElementById("finaleMissions").textContent=mc+"/8";
+    document.getElementById("finaleRank").textContent=rankFor(xp);
+    if(mc>=8){
+      document.getElementById("finaleHeading").textContent="Full fleet clearance — earned";
+      document.getElementById("finaleSub").textContent="All 8 missions cleared. The Artifact Registry voyage is complete.";
+      document.getElementById("finale").style.borderColor="var(--signal)";
     } else {
-      document.getElementById("finaleHeading").textContent = "Full fleet clearance";
-      document.getElementById("finaleSub").textContent = "Clear all 8 missions to earn your clearance stamp.";
+      document.getElementById("finaleHeading").textContent="Full fleet clearance";
+      document.getElementById("finaleSub").textContent="Clear all 8 missions to earn your clearance stamp.";
     }
   }
 
-  function toast(msg, xp){
-    var region = document.getElementById("toastRegion");
-    var t = document.createElement("div");
-    t.className = "toast";
-    t.innerHTML = msg + (xp ? '  <b>+' + xp + ' XP</b>' : '');
+  function toast(msg,xp){
+    var region=document.getElementById("toastRegion");
+    var t=document.createElement("div"); t.className="toast";
+    t.innerHTML=msg+(xp?'  <b>+'+xp+' XP</b>':'');
     region.appendChild(t);
-    setTimeout(function(){ t.remove(); }, 2400);
+    setTimeout(function(){ t.remove(); },2400);
   }
 
-  function confettiBurst(x, y){
+  function confettiBurst(x,y){
     if(reduceMotion) return;
-    var canvas = document.getElementById("confetti-canvas");
-    var dpr = window.devicePixelRatio || 1;
-    if(canvas.width !== window.innerWidth*dpr){
-      canvas.width = window.innerWidth*dpr; canvas.height = window.innerHeight*dpr;
-    }
-    var ctx = canvas.getContext("2d");
+    var canvas=document.getElementById("confetti-canvas");
+    var dpr=window.devicePixelRatio||1;
+    if(canvas.width!==window.innerWidth*dpr){ canvas.width=window.innerWidth*dpr; canvas.height=window.innerHeight*dpr; }
+    var ctx=canvas.getContext("2d");
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    var colors = ["#EF6C2E","#E8A317","#0E7C8C","#2E8F58"];
-    var particles = [];
+    var colors=["#EF6C2E","#E8A317","#0E7C8C","#2E8F58"];
+    var particles=[];
     for(var i=0;i<22;i++){
-      particles.push({
-        x:x, y:y,
-        vx:(Math.random()-0.5)*7,
-        vy:-Math.random()*6-2,
-        rot:Math.random()*Math.PI,
-        vr:(Math.random()-0.5)*0.3,
-        w:5+Math.random()*4, h:3+Math.random()*3,
-        color:colors[i%colors.length],
-        life:1
-      });
+      particles.push({x:x,y:y,vx:(Math.random()-0.5)*7,vy:-Math.random()*6-2,rot:Math.random()*Math.PI,vr:(Math.random()-0.5)*0.3,w:5+Math.random()*4,h:3+Math.random()*3,color:colors[i%colors.length],life:1});
     }
-    var start = null;
+    var start=null;
     function frame(ts){
-      if(!start) start = ts;
-      var dt = 0.6;
-      ctx.clearRect(0,0,canvas.width/dpr, canvas.height/dpr);
-      var alive = false;
+      if(!start) start=ts; var dt=0.6;
+      ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);
+      var alive=false;
       particles.forEach(function(p){
-        p.vy += 0.25*dt;
-        p.x += p.vx*dt; p.y += p.vy*dt; p.rot += p.vr*dt;
-        p.life -= 0.016*dt;
-        if(p.life > 0){
-          alive = true;
-          ctx.save();
-          ctx.globalAlpha = Math.max(p.life,0);
-          ctx.translate(p.x, p.y); ctx.rotate(p.rot);
-          ctx.fillStyle = p.color;
-          ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
-          ctx.restore();
-        }
+        p.vy+=0.25*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; p.rot+=p.vr*dt; p.life-=0.016*dt;
+        if(p.life>0){ alive=true; ctx.save(); ctx.globalAlpha=Math.max(p.life,0); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.color; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore(); }
       });
-      if(alive) requestAnimationFrame(frame);
-      else ctx.clearRect(0,0,canvas.width/dpr, canvas.height/dpr);
+      if(alive) requestAnimationFrame(frame); else ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);
     }
     requestAnimationFrame(frame);
   }
 
-  function award(el, lvl, key, xp, label){
-    var id = lvl + ":" + key;
+  function award(el,lvl,key,xp,label){
+    var id=lvl+":"+key;
     if(state.awarded[id]) return false;
-    state.awarded[id] = true;
-    state.levelXp[lvl] = Math.min(LEVEL_MAX[lvl], (state.levelXp[lvl]||0) + xp);
-    var rect = el.getBoundingClientRect();
-    confettiBurst(rect.left + rect.width/2, rect.top + rect.height/2);
-    toast(label || "Nice.", xp);
-    saveState();
-    renderAll();
-    var card = el.closest(".level-card");
-    if(card && card.classList.contains("cleared")){
-      setTimeout(function(){ toast("Mission " + lvl + " cleared —"); }, 350);
-    }
+    state.awarded[id]=true;
+    state.levelXp[lvl]=Math.min(LEVEL_MAX[lvl],(state.levelXp[lvl]||0)+xp);
+    var rect=el.getBoundingClientRect();
+    confettiBurst(rect.left+rect.width/2,rect.top+rect.height/2);
+    toast(label||"Nice.",xp); saveState(); renderAll();
+    var card=el.closest(".level-card");
+    if(card&&card.classList.contains("cleared")){ setTimeout(function(){ toast("Mission "+lvl+" cleared ✓"); },350); }
     return true;
   }
 
   function lightFlares(){
-    document.querySelectorAll(".flare-event").forEach(function(ev, i){
-      setTimeout(function(){ ev.classList.add("lit"); }, i*220);
-    });
+    document.querySelectorAll(".flare-event").forEach(function(ev,i){ setTimeout(function(){ ev.classList.add("lit"); },i*220); });
   }
 
-  function showVerdict(btn, row){
-    var verdict = btn.getAttribute("data-verdict");
-    var reason = btn.getAttribute("data-reason");
+  function showVerdict(btn,row){
+    var verdict=btn.getAttribute("data-verdict"), reason=btn.getAttribute("data-reason");
     if(row.querySelector(".scan-verdict")) return;
-    var badge = document.createElement("span");
-    badge.className = "scan-verdict " + verdict;
-    badge.textContent = verdict;
+    var badge=document.createElement("span"); badge.className="scan-verdict "+verdict; badge.textContent=verdict;
     btn.replaceWith(badge);
-    var reasonEl = document.createElement("span");
-    reasonEl.className = "scan-reason";
-    reasonEl.innerHTML = reason;
+    var reasonEl=document.createElement("span"); reasonEl.className="scan-reason"; reasonEl.innerHTML=reason;
     row.appendChild(reasonEl);
   }
 
   function rebuildRuleSentence(){
-    var texts = [];
+    var texts=[];
     ["r1","r2","r3"].forEach(function(k){
-      if(state.awarded["7:"+k]){
-        var chip = document.querySelector('[data-level="7"][data-key="'+k+'"]');
-        if(chip) texts.push(chip.getAttribute("data-text"));
-      }
+      if(state.awarded["7:"+k]){ var chip=document.querySelector('[data-level="7"][data-key="'+k+'"]'); if(chip) texts.push(chip.getAttribute("data-text")); }
     });
-    var box = document.getElementById("ruleSentence");
-    if(!box) return;
-    if(texts.length === 0){ box.innerHTML = "Pick at least one condition to build your rule."; return; }
-    box.innerHTML = "Delete any artifact version that <b>" + texts.join("</b> AND <b>") + "</b>.";
+    var box=document.getElementById("ruleSentence"); if(!box) return;
+    if(texts.length===0){ box.innerHTML="Pick at least one condition to build your rule."; return; }
+    box.innerHTML="Delete any artifact version that <b>"+texts.join("</b> AND <b>")+"</b>.";
   }
 
-  document.addEventListener("click", function(e){
-    var el = e.target.closest("[data-action]");
-    if(!el) return;
-    var action = el.getAttribute("data-action");
-    var lvl = el.getAttribute("data-level");
-    var key = el.getAttribute("data-key");
-    var xp = parseInt(el.getAttribute("data-xp") || "0", 10);
-
-    if(action === "award"){
-      award(el, lvl, key, xp, el.textContent.trim().split("(")[0].trim());
-    } else if(action === "sim-push"){
-      var target = document.querySelector(el.getAttribute("data-target"));
-      var ok = award(el, lvl, key, xp, "Loading...");
-      if(target){
-        var fill = target.querySelector(".progress-sim-fill");
-        fill.style.width = "0%";
-        requestAnimationFrame(function(){ fill.style.width = "100%"; });
-      }
-    } else if(action === "scan"){
-      // award() triggers renderAll(), whose restore pass swaps this row's
-      // button for a verdict badge — no extra DOM work needed here.
-      award(el, lvl, key, xp, "Scan complete —");
-    } else if(action === "rule"){
-      award(el, lvl, key, xp, "Rule updated —");
-      rebuildRuleSentence();
-    } else if(action === "flare"){
-      var wasOn = el.classList.contains("on");
-      if(!wasOn){
-        award(el, lvl, key, xp, "Flare armed —");
-        lightFlares();
-      }
+  document.addEventListener("click",function(e){
+    var el=e.target.closest("[data-action]"); if(!el) return;
+    var action=el.getAttribute("data-action"), lvl=el.getAttribute("data-level"), key=el.getAttribute("data-key"), xp=parseInt(el.getAttribute("data-xp")||"0",10);
+    if(action==="award"){ award(el,lvl,key,xp,el.textContent.trim().split("(")[0].trim()); }
+    else if(action==="sim-push"){
+      var target=document.querySelector(el.getAttribute("data-target"));
+      award(el,lvl,key,xp,"Loading...");
+      if(target){ var fill=target.querySelector(".progress-sim-fill"); fill.style.width="0%"; requestAnimationFrame(function(){ fill.style.width="100%"; }); }
     }
+    else if(action==="scan"){ award(el,lvl,key,xp,"Scan complete ✓"); }
+    else if(action==="rule"){ award(el,lvl,key,xp,"Rule updated ✓"); rebuildRuleSentence(); }
+    else if(action==="flare"){ if(!el.classList.contains("on")){ award(el,lvl,key,xp,"Flare armed ✓"); lightFlares(); } }
   });
 
-  document.getElementById("regNameInput").addEventListener("input", function(){
-    var v = this.value;
-    var valid = /^[a-z][a-z0-9._-]*$/.test(v) && v.length > 1;
-    this.classList.toggle("valid", valid);
-    if(valid) award(this, "1", "name", 45, "Vessel named —");
+  document.getElementById("regNameInput").addEventListener("input",function(){
+    var v=this.value; var valid=/^[a-z][a-z0-9._-]*$/.test(v)&&v.length>1;
+    this.classList.toggle("valid",valid);
+    if(valid) award(this,"1","name",45,"Vessel named ✓");
   });
 
-  document.getElementById("startBtn").addEventListener("click", function(){
-    document.getElementById("route").scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block:"start"});
+  document.getElementById("startBtn").addEventListener("click",function(){
+    document.getElementById("route").scrollIntoView({behavior:reduceMotion?"auto":"smooth",block:"start"});
   });
 
-  document.getElementById("resetBtn").addEventListener("click", function(){
+  document.getElementById("resetBtn").addEventListener("click",function(){
     if(!confirm("Reset the whole voyage back to Deckhand?")) return;
-    state = {awarded:{}, levelXp:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0}};
+    state={awarded:{},levelXp:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0}};
     saveState();
-    document.getElementById("regNameInput").value = "";
+    document.getElementById("regNameInput").value="";
     document.getElementById("regNameInput").classList.remove("valid");
-    document.querySelectorAll(".scan-row").forEach(function(row){
-      row.innerHTML = row.innerHTML; // no-op guard
-    });
     location.reload();
   });
 
-  document.getElementById("copyBtn").addEventListener("click", function(){
-    var xp = totalXp(), mc = clearedCount(), rank = rankFor(xp);
-    var summary = "Artifact Voyage clearance — " + mc + "/8 missions, " + xp + " XP, rank: " + rank + ".";
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(summary).then(function(){
-        toast("Summary copied to clipboard");
-      }).catch(function(){ toast(summary); });
-    } else {
-      toast(summary);
-    }
+  document.getElementById("copyBtn").addEventListener("click",function(){
+    var xp=totalXp(), mc=clearedCount(), rank=rankFor(xp);
+    var summary="Artifact Voyage clearance — "+mc+"/8 missions, "+xp+" XP, rank: "+rank+".";
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(summary).then(function(){ toast("Summary copied to clipboard"); }).catch(function(){ toast(summary); });
+    } else { toast(summary); }
   });
 
-  loadState();
-  renderAll();
+  loadState(); renderAll();
 })();
 </script>
 </body>
