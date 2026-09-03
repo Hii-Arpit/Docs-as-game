@@ -16,6 +16,7 @@
     --emerald: #16A97A;
     --cargo: #EF6C2E;
     --slate: #475569;
+    --chain: #0369A1;
     --line: rgba(43,31,61,0.12);
     --shadow: 0 2px 0 rgba(43,31,61,0.04), 0 16px 32px -18px rgba(43,31,61,0.28);
   }
@@ -69,6 +70,7 @@
   a.card.violet:hover { border-color: var(--violet); }
   a.card.emerald:hover { border-color: var(--emerald); }
   a.card.cargo:hover { border-color: var(--cargo); }
+  a.card.chain:hover { border-color: var(--chain); }
   .dot {
     width: 10px; height: 10px; border-radius: 50%;
     margin-bottom: 4px;
@@ -76,6 +78,7 @@
   .violet .dot { background: var(--violet); }
   .emerald .dot { background: var(--emerald); }
   .cargo .dot { background: var(--cargo); }
+  .chain .dot { background: var(--chain); }
   .card-tag {
     font-size: 11px; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.06em; color: var(--ink-soft);
@@ -83,6 +86,7 @@
   .violet .card-tag { color: var(--violet); }
   .emerald .card-tag { color: var(--emerald); }
   .cargo .card-tag { color: var(--cargo); }
+  .chain .card-tag { color: var(--chain); }
   .card-title {
     font-family: 'Sora', sans-serif;
     font-size: 20px; font-weight: 700; line-height: 1.2;
@@ -96,6 +100,7 @@
   .violet .card-cta { color: var(--violet); }
   .emerald .card-cta { color: var(--emerald); }
   .cargo .card-cta { color: var(--cargo); }
+  .chain .card-cta { color: var(--chain); }
   footer {
     margin-top: 48px;
     font-size: 12px;
@@ -123,6 +128,14 @@
       <div class="card-title">Artifact Voyage</div>
       <p class="card-desc">An Artifact Registry quickstart rebuilt as a voyage — create, push, pull, proxy, scan, and clean up artifacts.</p>
       <span class="card-cta">Set sail →</span>
+    </a>
+
+    <a class="card chain" href="scs.html">
+      <div class="dot"></div>
+      <span class="card-tag">7 Checkpoints · ~6 min</span>
+      <div class="card-title">Supply Chain Run</div>
+      <p class="card-desc">A Software Supply Chain Security walkthrough — trace an artifact through every checkpoint and earn clearance at each link.</p>
+      <span class="card-cta">Trace the chain →</span>
     </a>
 
     <a class="card emerald" href="cost-score-standalone.html">
